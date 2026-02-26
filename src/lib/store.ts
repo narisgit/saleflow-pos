@@ -53,8 +53,6 @@ export function useLanguage() {
   return { lang, toggleLanguage, t };
 }
 
-// NOTE: Auth logic moved to Firebase Hooks in components. 
-// This remains for legacy compatibility with other pages if needed.
 export function useStaff() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
 
@@ -133,5 +131,11 @@ export function useOrders() {
     if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
   };
 
-  return { orders, addOrder };
+  const deleteOrder = (id: string) => {
+    const updated = orders.filter(o => o.id !== id);
+    setOrders(updated);
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
+  };
+
+  return { orders, addOrder, deleteOrder };
 }

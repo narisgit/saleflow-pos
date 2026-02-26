@@ -10,7 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Search, Eye, FileText, User, Printer, X } from 'lucide-react'
+import { Search, Eye, FileText, User, Printer, X, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -23,9 +23,10 @@ import {
 } from "@/components/ui/dialog"
 import { Order } from '@/lib/types'
 import { Separator } from '@/components/ui/separator'
+import { toast } from '@/hooks/use-toast'
 
 export default function HistoryPage() {
-  const { orders } = useOrders()
+  const { orders, deleteOrder } = useOrders()
   const { t } = useLanguage()
   const [search, setSearch] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -39,6 +40,16 @@ export default function HistoryPage() {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this order?")) {
+      deleteOrder(id)
+      toast({
+        title: "Order Deleted",
+        description: `Order ${id} has been removed from history.`,
+      })
+    }
   }
 
   return (
@@ -112,6 +123,14 @@ export default function HistoryPage() {
                         onClick={() => { setSelectedOrder(order); setShowReceipt(false); }}
                       >
                         <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(order.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
