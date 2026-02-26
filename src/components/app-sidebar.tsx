@@ -12,9 +12,10 @@ import {
   Languages,
   Users,
   ChevronRight,
-  LogOut
+  LogOut,
+  User as UserIcon
 } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 
 import {
@@ -27,7 +28,9 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { useLanguage, useAuth, useStaff } from "@/lib/store"
+import { useLanguage } from "@/lib/store"
+import { useAuth, useUser } from "@/firebase"
+import { signOut } from "firebase/auth"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,9 +43,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { lang, toggleLanguage, t } = useLanguage()
-  const { currentUser, login } = useAuth()
-  const { staffList } = useStaff()
+  const auth = useAuth()
+  const { user } = useUser()
 
   const navItems = [
     { name: t.dashboard, href: "/", icon: LayoutDashboard },
@@ -51,6 +55,13 @@ export function AppSidebar() {
     { name: t.history, href: "/history", icon: History },
     { name: t.staff, href: "/staff", icon: Users },
   ]
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    router.push("/login")
+  }
+
+  if (pathname === "/login") return null
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -89,12 +100,12 @@ export function AppSidebar() {
                 <SidebarMenuButton size="lg" className="w-full">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {currentUser?.name.charAt(0)}
+                      {user?.email?.charAt(0).toUpperCase() || <UserIcon />}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                    <span className="truncate font-semibold">{currentUser?.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{currentUser?.role}</span>
+                    <span className="truncate font-semibold">{user?.displayName || user?.email?.split('@')[0]}</span>
+                    <span className="truncate text-xs text-muted-foreground">Staff Member</span>
                   </div>
                   <ChevronRight className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
                 </SidebarMenuButton>
@@ -104,26 +115,17 @@ export function AppSidebar() {
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                      <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {currentUser?.name.charAt(0)}
+                        {user?.email?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{currentUser?.name}</span>
-                      <span className="truncate text-xs text-muted-foreground">{currentUser?.role}</span>
+                      <span className="truncate font-semibold">{user?.displayName || user?.email?.split('@')[0]}</span>
+                      <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground px-2 py-1">{t.switchUser}</DropdownMenuLabel>
-                {staffList.map((staff) => (
-                  <DropdownMenuItem key={staff.id} onClick={() => login(staff)}>
-                    <Users className="mr-2 size-4" />
-                    <span>{staff.name}</span>
-                    {currentUser?.id === staff.id && <span className="ml-auto text-xs font-bold text-green-500">Active</span>}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   <LogOut className="mr-2 size-4" />
                   Log out
                 </DropdownMenuItem>

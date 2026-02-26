@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Product, Order, CartItem, Staff } from './types';
+import { Product, Order, Staff } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 import { Language, translations } from './translations';
 
@@ -38,14 +38,14 @@ export function useLanguage() {
   const [lang, setLang] = useState<Language>('en');
 
   useEffect(() => {
-    const stored = localStorage.getItem('saleflow_lang') as Language;
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('saleflow_lang') as Language : 'en';
     if (stored) setLang(stored);
   }, []);
 
   const toggleLanguage = () => {
     const newLang = lang === 'en' ? 'th' : 'en';
     setLang(newLang);
-    localStorage.setItem('saleflow_lang', newLang);
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_lang', newLang);
   };
 
   const t = translations[lang];
@@ -53,49 +53,31 @@ export function useLanguage() {
   return { lang, toggleLanguage, t };
 }
 
-export function useAuth() {
-  const [currentUser, setCurrentUser] = useState<Staff | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('saleflow_current_user');
-    if (stored) {
-      setCurrentUser(JSON.parse(stored));
-    } else {
-      setCurrentUser(INITIAL_STAFF[0]);
-    }
-  }, []);
-
-  const login = (staff: Staff) => {
-    setCurrentUser(staff);
-    localStorage.setItem('saleflow_current_user', JSON.stringify(staff));
-  };
-
-  return { currentUser, login };
-}
-
+// NOTE: Auth logic moved to Firebase Hooks in components. 
+// This remains for legacy compatibility with other pages if needed.
 export function useStaff() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('saleflow_staff');
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('saleflow_staff') : null;
     if (stored) {
       setStaffList(JSON.parse(stored));
     } else {
       setStaffList(INITIAL_STAFF);
-      localStorage.setItem('saleflow_staff', JSON.stringify(INITIAL_STAFF));
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(INITIAL_STAFF));
     }
   }, []);
 
   const addStaff = (staff: Staff) => {
     const updated = [...staffList, staff];
     setStaffList(updated);
-    localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(updated));
   };
 
   const deleteStaff = (id: string) => {
     const updated = staffList.filter(s => s.id !== id);
     setStaffList(updated);
-    localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(updated));
   };
 
   return { staffList, addStaff, deleteStaff };
@@ -105,31 +87,31 @@ export function useInventory() {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('saleflow_products');
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('saleflow_products') : null;
     if (stored) {
       setProducts(JSON.parse(stored));
     } else {
       setProducts(INITIAL_PRODUCTS);
-      localStorage.setItem('saleflow_products', JSON.stringify(INITIAL_PRODUCTS));
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(INITIAL_PRODUCTS));
     }
   }, []);
 
   const addProduct = (product: Product) => {
     const updated = [...products, product];
     setProducts(updated);
-    localStorage.setItem('saleflow_products', JSON.stringify(updated));
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
   };
 
   const updateProduct = (product: Product) => {
     const updated = products.map(p => p.id === product.id ? product : p);
     setProducts(updated);
-    localStorage.setItem('saleflow_products', JSON.stringify(updated));
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
   };
 
   const deleteProduct = (id: string) => {
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
-    localStorage.setItem('saleflow_products', JSON.stringify(updated));
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
   };
 
   return { products, addProduct, updateProduct, deleteProduct };
@@ -139,7 +121,7 @@ export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('saleflow_orders');
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('saleflow_orders') : null;
     if (stored) {
       setOrders(JSON.parse(stored));
     }
@@ -148,7 +130,7 @@ export function useOrders() {
   const addOrder = (order: Order) => {
     const updated = [order, ...orders];
     setOrders(updated);
-    localStorage.setItem('saleflow_orders', JSON.stringify(updated));
+    if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
   };
 
   return { orders, addOrder };
