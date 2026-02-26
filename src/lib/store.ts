@@ -6,54 +6,78 @@ import { Product, Order, Staff } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 import { Language, translations } from './translations';
 
-// --- INITIAL DATA ---
-const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Espresso Coffee',
-    price: 4.50,
-    stock: 50,
-    barcode: '1234567890123',
-    description: 'Freshly roasted premium espresso beans.',
-    category: 'Beverages',
-    imageUrl: PlaceHolderImages[0].imageUrl
-  },
-  {
-    id: '2',
-    name: 'Artisan Bread',
-    price: 6.00,
-    stock: 24,
-    barcode: '9876543210987',
-    description: 'Slow-fermented sourdough artisan bread.',
-    category: 'Bakery',
-    imageUrl: PlaceHolderImages[2].imageUrl
+// --- ROBUST GLOBAL STORE SINGLETON ---
+class SaleFlowStore {
+  orders: Order[] = [];
+  products: Product[] = [];
+  staff: Staff[] = [];
+  listeners: Set<() => void> = new Set();
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      const sOrders = localStorage.getItem('saleflow_orders');
+      if (sOrders) this.orders = JSON.parse(sOrders);
+
+      const sProducts = localStorage.getItem('saleflow_products');
+      if (sProducts) {
+        this.products = JSON.parse(sProducts);
+      } else {
+        this.products = [
+          {
+            id: '1',
+            name: 'Espresso Coffee',
+            price: 4.50,
+            stock: 50,
+            barcode: '1234567890123',
+            description: 'Freshly roasted premium espresso beans.',
+            category: 'Beverages',
+            imageUrl: PlaceHolderImages[0].imageUrl
+          },
+          {
+            id: '2',
+            name: 'Artisan Bread',
+            price: 6.00,
+            stock: 24,
+            barcode: '9876543210987',
+            description: 'Slow-fermented sourdough artisan bread.',
+            category: 'Bakery',
+            imageUrl: PlaceHolderImages[2].imageUrl
+          }
+        ];
+      }
+
+      const sStaff = localStorage.getItem('saleflow_staff');
+      if (sStaff) {
+        this.staff = JSON.parse(sStaff);
+      } else {
+        this.staff = [
+          { id: 's1', name: 'Somchai', role: 'Admin', active: true },
+          { id: 's2', name: 'Somsri', role: 'Sales', active: true }
+        ];
+      }
+    }
   }
-];
 
-const INITIAL_STAFF: Staff[] = [
-  { id: 's1', name: 'Somchai', role: 'Admin', active: true },
-  { id: 's2', name: 'Somsri', role: 'Sales', active: true }
-];
+  subscribe(l: () => void) {
+    this.listeners.add(l);
+    return () => this.listeners.delete(l);
+  }
 
-// --- SHARED GLOBAL STATE (Simplified) ---
-let globalOrders: Order[] = [];
-let globalProducts: Product[] = [];
-let globalStaff: Staff[] = [];
-let listeners: Array<() => void> = [];
+  notify() {
+    this.listeners.forEach(l => l());
+  }
 
-const notify = () => listeners.forEach(l => l());
-
-// Helper to sync from LocalStorage once
-if (typeof window !== 'undefined') {
-  const sOrders = localStorage.getItem('saleflow_orders');
-  if (sOrders) globalOrders = JSON.parse(sOrders);
-
-  const sProducts = localStorage.getItem('saleflow_products');
-  globalProducts = sProducts ? JSON.parse(sProducts) : INITIAL_PRODUCTS;
-
-  const sStaff = localStorage.getItem('saleflow_staff');
-  globalStaff = sStaff ? JSON.parse(sStaff) : INITIAL_STAFF;
+  save() {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('saleflow_orders', JSON.stringify(this.orders));
+      localStorage.setItem('saleflow_products', JSON.stringify(this.products));
+      localStorage.setItem('saleflow_staff', JSON.stringify(this.staff));
+    }
+    this.notify();
+  }
 }
+
+const globalStore = new SaleFlowStore();
 
 export function useLanguage() {
   const [lang, setLang] = useState<Language>('en');
@@ -70,84 +94,48 @@ export function useLanguage() {
   };
 
   const t = translations[lang];
-
   return { lang, toggleLanguage, t };
 }
 
 export function useStaff() {
-  const [staffList, setStaffList] = useState<Staff[]>(globalStaff);
+  const [staffList, setStaffList] = useState<Staff[]>(globalStore.staff);
 
   useEffect(() => {
-    const l = () => setStaffList([...globalStaff]);
-    listeners.push(l);
-    return () => { listeners = listeners.filter(i => i !== l); };
+    return globalStore.subscribe(() => setStaffList([...globalStore.staff]));
   }, []);
 
-  const addStaff = (staff: Staff) => {
-    globalStaff = [...globalStaff, staff];
-    localStorage.setItem('saleflow_staff', JSON.stringify(globalStaff));
-    notify();
+  return {
+    staffList,
+    addStaff: (s: Staff) => { globalStore.staff = [...globalStore.staff, s]; globalStore.save(); },
+    deleteStaff: (id: string) => { globalStore.staff = globalStore.staff.filter(s => s.id !== id); globalStore.save(); }
   };
-
-  const deleteStaff = (id: string) => {
-    globalStaff = globalStaff.filter(s => s.id !== id);
-    localStorage.setItem('saleflow_staff', JSON.stringify(globalStaff));
-    notify();
-  };
-
-  return { staffList, addStaff, deleteStaff };
 }
 
 export function useInventory() {
-  const [products, setProducts] = useState<Product[]>(globalProducts);
+  const [products, setProducts] = useState<Product[]>(globalStore.products);
 
   useEffect(() => {
-    const l = () => setProducts([...globalProducts]);
-    listeners.push(l);
-    return () => { listeners = listeners.filter(i => i !== l); };
+    return globalStore.subscribe(() => setProducts([...globalStore.products]));
   }, []);
 
-  const addProduct = (product: Product) => {
-    globalProducts = [...globalProducts, product];
-    localStorage.setItem('saleflow_products', JSON.stringify(globalProducts));
-    notify();
+  return {
+    products,
+    addProduct: (p: Product) => { globalStore.products = [...globalStore.products, p]; globalStore.save(); },
+    updateProduct: (p: Product) => { globalStore.products = globalStore.products.map(i => i.id === p.id ? p : i); globalStore.save(); },
+    deleteProduct: (id: string) => { globalStore.products = globalStore.products.filter(p => p.id !== id); globalStore.save(); }
   };
-
-  const updateProduct = (product: Product) => {
-    globalProducts = globalProducts.map(p => p.id === product.id ? product : p);
-    localStorage.setItem('saleflow_products', JSON.stringify(globalProducts));
-    notify();
-  };
-
-  const deleteProduct = (id: string) => {
-    globalProducts = globalProducts.filter(p => p.id !== id);
-    localStorage.setItem('saleflow_products', JSON.stringify(globalProducts));
-    notify();
-  };
-
-  return { products, addProduct, updateProduct, deleteProduct };
 }
 
 export function useOrders() {
-  const [orders, setOrders] = useState<Order[]>(globalOrders);
+  const [orders, setOrders] = useState<Order[]>(globalStore.orders);
 
   useEffect(() => {
-    const l = () => setOrders([...globalOrders]);
-    listeners.push(l);
-    return () => { listeners = listeners.filter(i => i !== l); };
+    return globalStore.subscribe(() => setOrders([...globalStore.orders]));
   }, []);
 
-  const addOrder = (order: Order) => {
-    globalOrders = [order, ...globalOrders];
-    localStorage.setItem('saleflow_orders', JSON.stringify(globalOrders));
-    notify();
+  return {
+    orders,
+    addOrder: (o: Order) => { globalStore.orders = [o, ...globalStore.orders]; globalStore.save(); },
+    deleteOrder: (id: string) => { globalStore.orders = globalStore.orders.filter(o => o.id !== id); globalStore.save(); }
   };
-
-  const deleteOrder = (id: string) => {
-    globalOrders = globalOrders.filter(o => o.id !== id);
-    localStorage.setItem('saleflow_orders', JSON.stringify(globalOrders));
-    notify();
-  };
-
-  return { orders, addOrder, deleteOrder };
 }

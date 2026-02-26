@@ -28,6 +28,16 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label'
 import { 
   Select, 
@@ -43,6 +53,7 @@ export default function StaffPage() {
   const { staffList, addStaff, deleteStaff } = useStaff()
   const { t } = useLanguage()
   const [isAdding, setIsAdding] = useState(false)
+  const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null)
 
   const [formData, setFormData] = useState<Partial<Staff>>({
     name: '',
@@ -67,6 +78,14 @@ export default function StaffPage() {
     setIsAdding(false)
     setFormData({ name: '', role: 'Sales' })
     toast({ title: t.completed, description: `${newStaff.name} added.` })
+  }
+
+  const confirmDelete = () => {
+    if (staffToDelete) {
+      deleteStaff(staffToDelete.id)
+      toast({ title: "Staff Removed", description: `${staffToDelete.name} has been removed.` })
+      setStaffToDelete(null)
+    }
   }
 
   return (
@@ -156,7 +175,7 @@ export default function StaffPage() {
                     variant="ghost" 
                     size="icon" 
                     className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    onClick={() => deleteStaff(staff.id)}
+                    onClick={() => setStaffToDelete(staff)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -166,6 +185,24 @@ export default function StaffPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!staffToDelete} onOpenChange={(open) => !open && setStaffToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Staff Member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove <strong>{staffToDelete?.name}</strong> from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -21,6 +21,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Order } from '@/lib/types'
 import { Separator } from '@/components/ui/separator'
 import { toast } from '@/hooks/use-toast'
@@ -31,6 +41,7 @@ export default function HistoryPage() {
   const [search, setSearch] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showReceipt, setShowReceipt] = useState(false)
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null)
 
   const filteredOrders = useMemo(() => {
     return orders.filter(o => 
@@ -44,13 +55,14 @@ export default function HistoryPage() {
     window.print()
   }
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      deleteOrder(id)
+  const confirmDelete = () => {
+    if (orderToDelete) {
+      deleteOrder(orderToDelete)
       toast({
         title: "Order Deleted",
-        description: `Order ${id} has been removed from history.`,
+        description: `Order ${orderToDelete} has been removed.`,
       })
+      setOrderToDelete(null)
     }
   }
 
@@ -130,7 +142,7 @@ export default function HistoryPage() {
                         variant="ghost" 
                         size="icon" 
                         className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDelete(order.id)}
+                        onClick={() => setOrderToDelete(order.id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -142,6 +154,24 @@ export default function HistoryPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!orderToDelete} onOpenChange={(open) => !open && setOrderToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete order <strong>{orderToDelete}</strong> from the history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Order Detail / Receipt Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={(open) => { if(!open) setSelectedOrder(null); }}>
