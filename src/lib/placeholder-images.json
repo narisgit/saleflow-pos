@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "prod-1",
+      "description": "Premium Espresso Coffee",
+      "imageUrl": "https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxlc3ByZXNzbyUyMGNvZmZlZXxlbnwwfHx8fDE3NzIwMTY4NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "espresso coffee"
+    },
+    {
+      "id": "prod-2",
+      "description": "Organic Green Tea",
+      "imageUrl": "https://images.unsplash.com/photo-1546852199-2d8e8c4aaada?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxncmVlbiUyMHRlYXxlbnwwfHx8fDE3NzIwOTM2MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green tea"
+    },
+    {
+      "id": "prod-3",
+      "description": "Artisan Sourdough Bread",
+      "imageUrl": "https://images.unsplash.com/photo-1597604391235-a7429b4b350c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb3VyZG91Z2glMjBicmVhZHxlbnwwfHx8fDE3NzIwNjM2NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sourdough bread"
+    },
+    {
+      "id": "prod-4",
+      "description": "Fresh Blueberry Muffin",
+      "imageUrl": "https://images.unsplash.com/photo-1582744702852-272407142248?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxibHVlYmVycnklMjBtdWZmaW58ZW58MHx8fHwxNzcyMDE2ODU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blueberry muffin"
+    },
+    {
+      "id": "prod-5",
+      "description": "Cold Brew Concentrate",
+      "imageUrl": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y29sZCUyMGJyZXd8ZW58MHx8fHwxNzcyMDQ0MjkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cold brew"
+    },
+    {
+      "id": "prod-6",
+      "description": "Honey Roasted Almonds",
+      "imageUrl": "https://images.unsplash.com/photo-1621944120209-1003c4022535?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyb2FzdGVkJTIwYWxtb25kc3xlbnwwfHx8fDE3NzIwOTM2MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "roasted almonds"
+    }
+  ]
 }
