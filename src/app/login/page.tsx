@@ -3,21 +3,26 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth, useUser } from "@/firebase"
-import { signInWithEmailAndPassword } from "firebase/auth"
+import { useAuth, useUser, useFirestore } from "@/firebase"
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Store, Loader2 } from "lucide-react"
+import { Store, Loader2, UserPlus, LogIn } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useLanguage } from "@/lib/store"
 
 export default function LoginPage() {
+  const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
   const [loading, setLoading] = useState(false)
+  
   const auth = useAuth()
+  const db = useFirestore()
   const { user, isUserLoading } = useUser()
   const router = useRouter()
   const { t } = useLanguage()
@@ -28,21 +33,46 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router])
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to SaleFlow POS",
-      })
+      if (isRegister) {
+        // Registration Flow
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        const newUser = userCredential.user
+        
+        // Update Firebase Auth profile
+        await updateProfile(newUser, { displayName: name })
+
+        // Create UserProfile document in Firestore (Required for Security Rules)
+        const profileRef = doc(db, "userProfiles", newUser.uid)
+        await setDoc(profileRef, {
+          id: newUser.uid,
+          name: name,
+          email: email,
+          role: "Cashier" // Default role
+        })
+
+        toast({
+          title: "Registration Successful",
+          description: `Account created for ${name}`,
+        })
+      } else {
+        // Login Flow
+        await signInWithEmailAndPassword(auth, email, password)
+        toast({
+          title: "Login Successful",
+          description: "Welcome back to SaleFlow POS",
+        })
+      }
       router.push("/")
     } catch (error: any) {
+      console.error(error)
       toast({
         variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "Invalid email or password",
+        title: isRegister ? "Registration Failed" : "Login Failed",
+        description: error.message || "An error occurred during authentication",
       })
     } finally {
       setLoading(false)
@@ -66,13 +96,30 @@ export default function LoginPage() {
               <Store className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-headline font-bold">SaleFlow POS</CardTitle>
+          <CardTitle className="text-2xl font-headline font-bold">
+            {isRegister ? "Staff Registration" : "SaleFlow POS"}
+          </CardTitle>
           <CardDescription>
-            Enter your employee credentials to access the system
+            {isRegister 
+              ? "Create a new employee account" 
+              : "Enter your employee credentials to access the system"}
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleAuth}>
           <CardContent className="space-y-4">
+            {isRegister && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input 
+                  id="name" 
+                  placeholder="John Doe" 
+                  required 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input 
@@ -97,10 +144,20 @@ export default function LoginPage() {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-4">
             <Button className="w-full h-11 text-lg font-bold" type="submit" disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Sign In
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : (
+                isRegister ? <UserPlus className="w-5 h-5 mr-2" /> : <LogIn className="w-5 h-5 mr-2" />
+              )}
+              {isRegister ? "Register Staff" : "Sign In"}
+            </Button>
+            <Button 
+              variant="ghost" 
+              type="button" 
+              className="w-full"
+              onClick={() => setIsRegister(!isRegister)}
+            >
+              {isRegister ? "Already have an account? Sign In" : "New Staff? Register here"}
             </Button>
           </CardFooter>
         </form>
