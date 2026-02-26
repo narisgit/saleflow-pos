@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { useInventory, useOrders } from '@/lib/store'
+import { useInventory, useOrders, useLanguage } from '@/lib/store'
 import { Product, CartItem, Order } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -15,8 +15,7 @@ import {
   Plus, 
   Minus, 
   CheckCircle2, 
-  Scan,
-  Barcode
+  Scan
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
@@ -24,6 +23,7 @@ import Image from 'next/image'
 export default function POSPage() {
   const { products, updateProduct } = useInventory()
   const { addOrder } = useOrders()
+  const { t } = useLanguage()
   
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<CartItem[]>([])
@@ -42,7 +42,7 @@ export default function POSPage() {
 
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
-      toast({ title: "Out of Stock", description: "This item is currently unavailable.", variant: "destructive" })
+      toast({ title: t.outOfStock, description: t.outOfStock, variant: "destructive" })
       return
     }
 
@@ -50,7 +50,7 @@ export default function POSPage() {
       const existing = prev.find(item => item.id === product.id)
       if (existing) {
         if (existing.quantity >= product.stock) {
-          toast({ title: "Limit Reached", description: "Not enough stock available.", variant: "destructive" })
+          toast({ title: t.limitReached, description: t.limitReached, variant: "destructive" })
           return prev
         }
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
@@ -69,7 +69,7 @@ export default function POSPage() {
         const newQty = Math.max(1, item.quantity + delta)
         const product = products.find(p => p.id === id)
         if (product && newQty > product.stock) {
-          toast({ title: "Limit Reached", description: "Not enough stock available.", variant: "destructive" })
+          toast({ title: t.limitReached, description: t.limitReached, variant: "destructive" })
           return item
         }
         return { ...item, quantity: newQty }
@@ -82,7 +82,7 @@ export default function POSPage() {
   const tax = subtotal * 0.08
   const total = subtotal + tax
 
-  const finalizeTransaction = () => {
+  const finalizeOrder = () => {
     if (cart.length === 0) return
 
     const newOrder: Order = {
@@ -93,7 +93,6 @@ export default function POSPage() {
       total
     }
 
-    // Deduct stock
     cart.forEach(item => {
       const product = products.find(p => p.id === item.id)
       if (product) {
@@ -104,36 +103,27 @@ export default function POSPage() {
     addOrder(newOrder)
     setCart([])
     toast({
-      title: "Order Completed!",
-      description: `Transaction ${newOrder.id} has been saved successfully.`,
+      title: t.orderCompleted,
+      description: `${t.orderId}: ${newOrder.id}`,
     })
-  }
-
-  const scanBarcodeMock = () => {
-    const randomProduct = products[Math.floor(Math.random() * products.length)]
-    if (randomProduct) {
-      addToCart(randomProduct)
-      toast({ title: "Barcode Scanned", description: `Added ${randomProduct.name} to cart.` })
-    }
   }
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col md:flex-row gap-6">
-      {/* Product Selection Side */}
       <div className="flex-1 flex flex-col gap-6 min-w-0">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
-              placeholder="Search products or scan barcode..." 
+              placeholder={t.searchProducts} 
               className="pl-10"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" onClick={scanBarcodeMock} className="gap-2">
+          <Button variant="outline" className="gap-2">
             <Scan className="w-4 h-4" />
-            Scan
+            {t.scan}
           </Button>
         </div>
 
@@ -146,7 +136,7 @@ export default function POSPage() {
               onClick={() => setActiveCategory(cat)}
               className="rounded-full px-4"
             >
-              {cat}
+              {cat === 'All' ? t.all : cat}
             </Button>
           ))}
         </div>
@@ -168,17 +158,12 @@ export default function POSPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   )}
-                  {product.stock <= 5 && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      LOW STOCK
-                    </div>
-                  )}
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-primary font-bold">${product.price.toFixed(2)}</p>
-                    <p className="text-[10px] text-muted-foreground">Qty: {product.stock}</p>
+                    <p className="text-[10px] text-muted-foreground">{t.stock}: {product.stock}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -187,15 +172,14 @@ export default function POSPage() {
         </ScrollArea>
       </div>
 
-      {/* Cart Side */}
       <Card className="w-full md:w-[400px] flex flex-col border-none shadow-lg overflow-hidden h-full">
         <div className="p-4 border-b flex items-center justify-between bg-primary text-primary-foreground">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5" />
-            <h2 className="font-bold">Transaction Cart</h2>
+            <h2 className="font-bold">{t.cart}</h2>
           </div>
           <span className="bg-accent text-accent-foreground px-2 py-0.5 rounded-full text-xs font-bold">
-            {cart.reduce((a, b) => a + b.quantity, 0)} items
+            {cart.reduce((a, b) => a + b.quantity, 0)} {t.items}
           </span>
         </div>
 
@@ -203,7 +187,7 @@ export default function POSPage() {
           {cart.length === 0 ? (
             <div className="h-48 flex flex-col items-center justify-center text-muted-foreground space-y-2 opacity-60">
               <ShoppingCart className="w-12 h-12" />
-              <p>Your cart is empty</p>
+              <p>{t.cart} ({t.items} 0)</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -214,7 +198,7 @@ export default function POSPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} / unit</p>
+                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <Button 
                         variant="outline" 
@@ -255,26 +239,26 @@ export default function POSPage() {
         <div className="p-6 border-t bg-muted/30 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t.subtotal}</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax (8%)</span>
+              <span className="text-muted-foreground">{t.tax} (8%)</span>
               <span>${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
-              <span>Total</span>
+              <span>{t.total}</span>
               <span className="text-primary">${total.toFixed(2)}</span>
             </div>
           </div>
 
           <Button 
-            className="w-full py-6 text-lg font-bold bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg hover:shadow-xl transition-all"
+            className="w-full py-6 text-lg font-bold bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg"
             disabled={cart.length === 0}
-            onClick={finalizeTransaction}
+            onClick={finalizeOrder}
           >
             <CheckCircle2 className="w-5 h-5 mr-2" />
-            Finalize Order
+            {t.finalizeOrder}
           </Button>
         </div>
       </Card>

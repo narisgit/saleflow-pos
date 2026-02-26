@@ -7,9 +7,9 @@ import {
   ShoppingCart, 
   Package, 
   History,
-  TrendingUp,
   Settings,
-  Store
+  Store,
+  Languages
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -24,16 +24,18 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
-
-const navItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Point of Sale", href: "/pos", icon: ShoppingCart },
-  { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "Order History", href: "/history", icon: History },
-]
+import { useLanguage } from "@/lib/store"
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { lang, toggleLanguage, t } = useLanguage()
+
+  const navItems = [
+    { name: t.dashboard, href: "/", icon: LayoutDashboard },
+    { name: t.pos, href: "/pos", icon: ShoppingCart },
+    { name: t.inventory, href: "/inventory", icon: Package },
+    { name: t.history, href: "/history", icon: History },
+  ]
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -64,12 +66,18 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 space-y-2">
         <SidebarMenu>
           <SidebarMenuItem>
-             <SidebarMenuButton tooltip="Settings">
+            <SidebarMenuButton tooltip={lang === 'en' ? 'สลับเป็นภาษาไทย' : 'Switch to English'} onClick={toggleLanguage}>
+              <Languages className="w-5 h-5" />
+              <span>{lang === 'en' ? 'English' : 'ไทย'}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+             <SidebarMenuButton tooltip={t.settings}>
               <Settings className="w-5 h-5" />
-              <span>Settings</span>
+              <span>{t.settings}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

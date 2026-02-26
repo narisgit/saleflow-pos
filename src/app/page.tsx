@@ -2,36 +2,36 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useInventory, useOrders } from "@/lib/store"
+import { useInventory, useOrders, useLanguage } from "@/lib/store"
 import { TrendingUp, Package, ShoppingCart, DollarSign } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function DashboardPage() {
   const { products } = useInventory()
   const { orders } = useOrders()
+  const { t } = useLanguage()
 
   const totalSales = orders.reduce((acc, order) => acc + order.total, 0)
   const totalItemsSold = orders.reduce((acc, order) => acc + order.items.reduce((iAcc, item) => iAcc + item.quantity, 0), 0)
   const lowStockProducts = products.filter(p => p.stock < 10).length
 
-  // Simplified chart data
   const chartData = orders.slice(0, 7).reverse().map(order => ({
     name: new Date(order.date).toLocaleDateString([], { weekday: 'short' }),
     total: order.total
   }))
 
   const stats = [
-    { title: "Total Revenue", value: `$${totalSales.toFixed(2)}`, icon: DollarSign, color: "text-blue-600" },
-    { title: "Orders Completed", value: orders.length, icon: ShoppingCart, color: "text-green-600" },
-    { title: "Items Sold", value: totalItemsSold, icon: TrendingUp, color: "text-purple-600" },
-    { title: "Low Stock Items", value: lowStockProducts, icon: Package, color: "text-orange-600" },
+    { title: t.totalRevenue, value: `$${totalSales.toFixed(2)}`, icon: DollarSign, color: "text-blue-600" },
+    { title: t.ordersCompleted, value: orders.length, icon: ShoppingCart, color: "text-green-600" },
+    { title: t.itemsSold, value: totalItemsSold, icon: TrendingUp, color: "text-purple-600" },
+    { title: t.lowStockItems, value: lowStockProducts, icon: Package, color: "text-orange-600" },
   ]
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-headline font-bold text-primary">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, here's your sales overview for today.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">{t.dashboard}</h1>
+        <p className="text-muted-foreground">SaleFlow POS - {t.dashboard}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -51,7 +51,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-none shadow-sm">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>{t.recentActivity}</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             {chartData.length > 0 ? (
@@ -69,7 +69,7 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground italic">
-                No transaction data available yet.
+                {t.noOrders}
               </div>
             )}
           </CardContent>
@@ -77,7 +77,7 @@ export default function DashboardPage() {
 
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle>Low Stock Alert</CardTitle>
+            <CardTitle>{t.lowStockAlert}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                       <p className="text-xs text-muted-foreground">{p.category}</p>
                     </div>
                     <span className="text-xs font-bold px-2 py-1 rounded bg-orange-100 text-orange-700">
-                      {p.stock} left
+                      {p.stock} {t.units}
                     </span>
                   </div>
                 ))

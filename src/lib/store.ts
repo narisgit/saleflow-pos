@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Product, Order, CartItem } from './types';
 import { PlaceHolderImages } from './placeholder-images';
+import { Language, translations } from './translations';
 
 const INITIAL_PRODUCTS: Product[] = [
   {
@@ -37,6 +38,25 @@ const INITIAL_PRODUCTS: Product[] = [
     imageUrl: PlaceHolderImages[1].imageUrl
   }
 ];
+
+export function useLanguage() {
+  const [lang, setLang] = useState<Language>('en');
+
+  useEffect(() => {
+    const stored = localStorage.getItem('saleflow_lang') as Language;
+    if (stored) setLang(stored);
+  }, []);
+
+  const toggleLanguage = () => {
+    const newLang = lang === 'en' ? 'th' : 'en';
+    setLang(newLang);
+    localStorage.setItem('saleflow_lang', newLang);
+  };
+
+  const t = translations[lang];
+
+  return { lang, toggleLanguage, t };
+}
 
 export function useInventory() {
   const [products, setProducts] = useState<Product[]>([]);
