@@ -1,0 +1,233 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user or employee within the POS system, primarily for tracking who performed transactions. Authentication details are managed externally.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the user or employee."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user within the system (e.g., 'Cashier', 'Manager', 'Admin')."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a single product available for sale in the POS system, including inventory details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Product entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the product, potentially AI-generated."
+        },
+        "price": {
+          "type": "number",
+          "description": "The selling price of the product."
+        },
+        "stock": {
+          "type": "number",
+          "description": "The current quantity of the product available in stock."
+        },
+        "barcode": {
+          "type": "string",
+          "description": "The unique barcode identifier for the product, used for scanning. (Can be generated if not present initially)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL to an image of the product.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "price",
+        "stock"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a finalized customer transaction, including overall details and a reference to the processing cashier.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Order entity."
+        },
+        "orderDateTime": {
+          "type": "string",
+          "description": "The date and time when the order was finalized.",
+          "format": "date-time"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The final total monetary amount of the order after all calculations."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the order (e.g., 'completed', 'pending', 'cancelled')."
+        },
+        "cashierId": {
+          "type": "string",
+          "description": "Reference to the UserProfile of the cashier who processed this order. (Relationship: UserProfile 1:N Order)"
+        }
+      },
+      "required": [
+        "id",
+        "orderDateTime",
+        "totalAmount",
+        "status",
+        "cashierId"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents a single product line item within a specific order, detailing the product, quantity, and its price at the time of purchase.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the OrderItem entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product being purchased. (Relationship: Product 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the product included in this order item."
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "The price of the product at the time it was added to the order. This can differ from the current product price."
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "The calculated subtotal for this specific order item (quantity * unitPrice)."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "productId",
+        "quantity",
+        "unitPrice",
+        "subtotal"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userProfiles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores individual user or employee profiles. The document ID (`userId`) MUST match the Firebase Authentication UID (`request.auth.uid`). The 'role' field within this document is used for role-based access control. Allows users to read their own profile; managers/admins can read/write all profiles.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user, corresponding to Firebase Authentication UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Contains details for all products available in the POS system. All authenticated users can read product information; managers and administrators have write access. Homogeneous security posture for all documents within this collection.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique ID of the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores finalized customer transactions. Includes 'cashierId' which links to the UserProfile of the processing cashier. This 'cashierId' is denormalized for authorization independence, allowing rules to directly verify ownership or access without requiring a 'get()' call. Cashiers can only list/access their own orders; managers/admins can list/access all orders.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique ID of the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}/order_items/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Stores individual line items associated with a specific order. Includes denormalized 'cashierId' (copied from the parent order) for authorization independence, enabling direct security rule evaluation without needing 'get()' calls to the parent order document. Access is governed by the permissions on the parent order, leveraging the denormalized 'cashierId'.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique ID of the parent order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "The unique ID of the order item."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure for SaleFlow prioritizes security, scalability, and debuggability by adhering to the core design principles. The 'UserProfile' entity is stored in `/userProfiles/{userId}`, where `userId` corresponds to `request.auth.uid`. This allows for path-based security for individual user profiles and enables easy role-based access control (DBAC) by reading the 'role' field from the authenticated user's profile. Product data is kept in a top-level `/products/{productId}` collection, allowing all authenticated users (cashiers, managers, admins) to view products, while restricting write access to managers and administrators based on their 'UserProfile' role.\n\nFor transactional data, 'Order' entities are stored in a top-level `/orders/{orderId}` collection. Each 'Order' document contains a `cashierId` field, which directly links the order to the processing cashier's `UserProfile.id` (and thus `request.auth.uid`). This denormalization of the `cashierId` at the 'Order' level ensures Authorization Independence for 'Order' documents, as rules can check `resource.data.cashierId == request.auth.uid` without needing to perform `get()` operations on other collections. 'OrderItem' entities are structured as a subcollection, `/orders/{orderId}/order_items/{orderItemId}`. Critically, to achieve Authorization Independence for 'OrderItem' documents, the `cashierId` from the parent 'Order' document is denormalized and copied into each 'OrderItem' document. This means rules for 'OrderItem' can evaluate access by checking `resource.data.cashierId` directly, avoiding complex and performance-impacting `get()` calls to the parent 'Order' document.\n\nThis design directly supports Queryable Authorization Policies (QAPs). For 'Order History View', cashiers can securely list only their own orders by querying `/orders` where `cashierId == request.auth.uid`. Managers/Admins, whose roles are determined from their `UserProfile`, can be granted broader access to list all orders. Similarly, 'Product Management' operations allow cashiers to list all products, while managers/admins have appropriate read/write permissions based on their explicitly defined roles in their respective UserProfile documents. The structural segregation of data (e.g., all products in one collection, all orders in another) ensures homogeneous security postures within each collection, simplifying security rules and enhancing debuggability. Even without an explicit login page as per the user's initial request, Firebase Authentication is presumed to be active (e.g., anonymous or auto-login) such that `request.auth.uid` is consistently available and mapped to a `UserProfile.id` for rule evaluation."
+  }
+}
