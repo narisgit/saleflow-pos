@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { useInventory, useOrders, useLanguage } from '@/lib/store'
-import { useUser } from '@/firebase'
+import { useUser, useFirestore } from '@/firebase'
 import { Product, CartItem, Order } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -17,13 +17,14 @@ import {
   Minus, 
   CheckCircle2, 
   Scan,
-  User as UserIcon
+  User as UserIcon,
+  Loader2
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 
 export default function POSPage() {
-  const { products, updateProduct } = useInventory()
+  const { products, updateProduct, isLoading: isInventoryLoading } = useInventory()
   const { addOrder } = useOrders()
   const { t } = useLanguage()
   const { user } = useUser()
@@ -32,7 +33,6 @@ export default function POSPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [activeCategory, setActiveCategory] = useState('All')
 
-  // Derive current staff info from Firebase User
   const currentUser = useMemo(() => {
     if (!user) return null;
     return {
@@ -107,6 +107,7 @@ export default function POSPage() {
       cashierName: currentUser.name
     }
 
+    // Update stock and save order
     cart.forEach(item => {
       const product = products.find(p => p.id === item.id)
       if (product) {
@@ -120,6 +121,14 @@ export default function POSPage() {
       title: t.orderCompleted,
       description: `${t.orderId}: ${newOrder.id} - ${t.cashier}: ${currentUser.name}`,
     })
+  }
+
+  if (isInventoryLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
