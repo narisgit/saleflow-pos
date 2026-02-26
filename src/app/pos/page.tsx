@@ -2,7 +2,8 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { useInventory, useOrders, useLanguage, useAuth } from '@/lib/store'
+import { useInventory, useOrders, useLanguage } from '@/lib/store'
+import { useUser } from '@/firebase'
 import { Product, CartItem, Order } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -16,7 +17,7 @@ import {
   Minus, 
   CheckCircle2, 
   Scan,
-  User
+  User as UserIcon
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
@@ -25,11 +26,20 @@ export default function POSPage() {
   const { products, updateProduct } = useInventory()
   const { addOrder } = useOrders()
   const { t } = useLanguage()
-  const { currentUser } = useAuth()
+  const { user } = useUser()
   
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<CartItem[]>([])
   const [activeCategory, setActiveCategory] = useState('All')
+
+  // Derive current staff info from Firebase User
+  const currentUser = useMemo(() => {
+    if (!user) return null;
+    return {
+      id: user.uid,
+      name: user.displayName || user.email?.split('@')[0] || 'Staff'
+    };
+  }, [user]);
 
   const categories = useMemo(() => {
     const cats = Array.from(new Set(products.map(p => p.category)))
@@ -132,7 +142,7 @@ export default function POSPage() {
             </Button>
           </div>
           <div className="flex items-center gap-2 px-3 py-1 bg-secondary rounded-full text-sm font-medium">
-            <User className="w-4 h-4" />
+            <UserIcon className="w-4 h-4" />
             <span>{currentUser?.name || '---'}</span>
           </div>
         </div>
