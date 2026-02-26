@@ -10,22 +10,36 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Search, Eye, FileText, User } from 'lucide-react'
+import { Search, Eye, FileText, User, Printer, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Order } from '@/lib/types'
+import { Separator } from '@/components/ui/separator'
 
 export default function HistoryPage() {
   const { orders } = useOrders()
   const { t } = useLanguage()
   const [search, setSearch] = useState('')
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [showReceipt, setShowReceipt] = useState(false)
 
   const filteredOrders = orders.filter(o => 
     o.id.toLowerCase().includes(search.toLowerCase()) ||
     o.cashierName.toLowerCase().includes(search.toLowerCase()) ||
     o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase()))
   )
+
+  const handlePrint = () => {
+    window.print()
+  }
 
   return (
     <div className="space-y-8">
@@ -82,11 +96,21 @@ export default function HistoryPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" className="gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => { setSelectedOrder(order); setShowReceipt(true); }}
+                      >
                         <FileText className="w-4 h-4" />
                         {t.receipt}
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => { setSelectedOrder(order); setShowReceipt(false); }}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                     </div>
@@ -97,6 +121,66 @@ export default function HistoryPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Order Detail / Receipt Dialog */}
+      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{showReceipt ? t.receipt : "Order Details"}</span>
+              {showReceipt && (
+                <Button variant="outline" size="icon" onClick={handlePrint} className="h-8 w-8">
+                  <Printer className="w-4 h-4" />
+                </Button>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className={`space-y-4 ${showReceipt ? 'font-mono text-sm' : ''}`}>
+              <div className="text-center space-y-1">
+                <h3 className="font-bold text-lg">SaleFlow POS</h3>
+                <p className="text-xs text-muted-foreground">Order ID: {selectedOrder.id}</p>
+                <p className="text-xs text-muted-foreground">{new Date(selectedOrder.date).toLocaleString()}</p>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                {selectedOrder.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between">
+                    <span>{item.name} x{item.quantity}</span>
+                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-base">
+                  <span>{t.total}</span>
+                  <span>${selectedOrder.total.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t.cashier}:</span>
+                  <span>{selectedOrder.cashierName}</span>
+                </div>
+                <p className="text-center mt-4 italic">Thank you for your business!</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -37,10 +37,11 @@ import { toast } from '@/hooks/use-toast'
 import { Badge } from '@/components/ui/badge'
 
 export default function InventoryPage() {
-  const { products, addProduct, deleteProduct } = useInventory()
+  const { products, addProduct, updateProduct, deleteProduct } = useInventory()
   const { t } = useLanguage()
   const [search, setSearch] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
 
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -54,31 +55,55 @@ export default function InventoryPage() {
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase()) || 
-    p.category.toLowerCase().includes(search.toLowerCase()) ||
+    (p.category && p.category.toLowerCase().includes(search.toLowerCase())) ||
     p.barcode.includes(search)
   )
 
-  const handleAdd = () => {
-    if (!formData.name || !formData.price || !formData.barcode) {
+  const resetForm = () => {
+    setFormData({ name: '', price: 0, stock: 0, barcode: '', category: '', description: '' })
+    setEditingProduct(null)
+  }
+
+  const handleOpenDialog = (product?: Product) => {
+    if (product) {
+      setEditingProduct(product)
+      setFormData(product)
+    } else {
+      resetForm()
+    }
+    setIsDialogOpen(true)
+  }
+
+  const handleSave = () => {
+    if (!formData.name || formData.price === undefined || !formData.barcode) {
       toast({ title: "Error", description: "Fill required fields.", variant: "destructive" })
       return
     }
 
-    const newProduct: Product = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: formData.name!,
-      price: Number(formData.price),
-      stock: Number(formData.stock),
-      barcode: formData.barcode!,
-      category: formData.category || 'Uncategorized',
-      description: formData.description || '',
-      imageUrl: `https://picsum.photos/seed/${formData.name}/400/300`
+    if (editingProduct) {
+      updateProduct({
+        ...editingProduct,
+        ...formData,
+        price: Number(formData.price),
+        stock: Number(formData.stock)
+      } as Product)
+      toast({ title: t.completed, description: `Updated ${formData.name}` })
+    } else {
+      const newProduct: Product = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: formData.name!,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        barcode: formData.barcode!,
+        category: formData.category || 'Uncategorized',
+        description: formData.description || '',
+        imageUrl: `https://picsum.photos/seed/${formData.name}/400/300`
+      }
+      addProduct(newProduct)
+      toast({ title: t.completed, description: `Added ${newProduct.name}` })
     }
-
-    addProduct(newProduct)
-    setIsAdding(false)
-    setFormData({ name: '', price: 0, stock: 0, barcode: '', category: '', description: '' })
-    toast({ title: t.completed, description: `${newProduct.name}` })
+    setIsDialogOpen(false)
+    resetForm()
   }
 
   const generateAI = async () => {
@@ -109,16 +134,16 @@ export default function InventoryPage() {
           <h1 className="text-3xl font-headline font-bold text-primary">{t.inventory}</h1>
           <p className="text-muted-foreground">{t.inventory} Management</p>
         </div>
-        <Dialog open={isAdding} onOpenChange={setIsAdding}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
+            <Button onClick={() => handleOpenDialog()} className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
               <Plus className="w-4 h-4 mr-2" />
               {t.addProduct}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{t.addProduct}</DialogTitle>
+              <DialogTitle>{editingProduct ? t.actions : t.addProduct}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -181,8 +206,8 @@ export default function InventoryPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAdding(false)}>{t.cancel}</Button>
-              <Button onClick={handleAdd}>{t.saveProduct}</Button>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
+              <Button onClick={handleSave}>{editingProduct ? t.saveProduct : t.saveProduct}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -237,10 +262,15 @@ export default function InventoryPage() {
                   <TableCell>{product.stock}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8" 
+                        onClick={() => handleOpenDialog(product)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteProduct(product.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteProduct(product.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
