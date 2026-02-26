@@ -45,7 +45,7 @@ export default function HistoryPage() {
   }
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this order?")) {
+    if (window.confirm("Are you sure you want to delete this order?")) {
       deleteOrder(id)
       toast({
         title: "Order Deleted",
