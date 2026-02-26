@@ -67,15 +67,19 @@ export function useStaff() {
   }, []);
 
   const addStaff = (staff: Staff) => {
-    const updated = [...staffList, staff];
-    setStaffList(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+    setStaffList(prev => {
+      const updated = [...prev, staff];
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const deleteStaff = (id: string) => {
-    const updated = staffList.filter(s => s.id !== id);
-    setStaffList(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+    setStaffList(prev => {
+      const updated = prev.filter(s => s.id !== id);
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return { staffList, addStaff, deleteStaff };
@@ -95,21 +99,27 @@ export function useInventory() {
   }, []);
 
   const addProduct = (product: Product) => {
-    const updated = [...products, product];
-    setProducts(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
+    setProducts(prev => {
+      const updated = [...prev, product];
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const updateProduct = (product: Product) => {
-    const updated = products.map(p => p.id === product.id ? product : p);
-    setProducts(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
+    setProducts(prev => {
+      const updated = prev.map(p => p.id === product.id ? product : p);
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const deleteProduct = (id: string) => {
-    const updated = products.filter(p => p.id !== id);
-    setProducts(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
+    setProducts(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_products', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return { products, addProduct, updateProduct, deleteProduct };
@@ -126,15 +136,19 @@ export function useOrders() {
   }, []);
 
   const addOrder = (order: Order) => {
-    const updated = [order, ...orders];
-    setOrders(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
+    setOrders(prev => {
+      const updated = [order, ...prev];
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const deleteOrder = (id: string) => {
-    const updated = orders.filter(o => o.id !== id);
-    setOrders(updated);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
+    setOrders(prev => {
+      const updated = prev.filter(o => o.id !== id);
+      if (typeof window !== 'undefined') localStorage.setItem('saleflow_orders', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return { orders, addOrder, deleteOrder };

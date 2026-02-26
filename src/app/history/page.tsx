@@ -10,9 +10,9 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Search, Eye, FileText, User, Printer, X, Trash2 } from 'lucide-react'
+import { Search, Eye, FileText, User, Printer, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,11 +32,13 @@ export default function HistoryPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showReceipt, setShowReceipt] = useState(false)
 
-  const filteredOrders = orders.filter(o => 
-    o.id.toLowerCase().includes(search.toLowerCase()) ||
-    o.cashierName.toLowerCase().includes(search.toLowerCase()) ||
-    o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase()))
-  )
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => 
+      o.id.toLowerCase().includes(search.toLowerCase()) ||
+      o.cashierName.toLowerCase().includes(search.toLowerCase()) ||
+      o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase()))
+    )
+  }, [orders, search])
 
   const handlePrint = () => {
     window.print()
@@ -142,7 +144,7 @@ export default function HistoryPage() {
       </div>
 
       {/* Order Detail / Receipt Dialog */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog open={!!selectedOrder} onOpenChange={(open) => { if(!open) setSelectedOrder(null); }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
