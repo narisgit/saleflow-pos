@@ -10,7 +10,8 @@ import {
   Plus, 
   Trash2, 
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Briefcase
 } from 'lucide-react'
 import { 
   Table, 
@@ -57,7 +58,7 @@ export default function StaffPage() {
 
   const [formData, setFormData] = useState<Partial<Staff>>({
     name: '',
-    role: 'Sales',
+    role: 'Cashier',
     active: true
   })
 
@@ -70,13 +71,13 @@ export default function StaffPage() {
     const newStaff: Staff = {
       id: Math.random().toString(36).substr(2, 9),
       name: formData.name!,
-      role: (formData.role as 'Admin' | 'Sales') || 'Sales',
+      role: (formData.role as any) || 'Cashier',
       active: true
     }
 
     addStaff(newStaff)
     setIsAdding(false)
-    setFormData({ name: '', role: 'Sales' })
+    setFormData({ name: '', role: 'Cashier' })
     toast({ title: t.completed, description: `${newStaff.name} added.` })
   }
 
@@ -127,7 +128,8 @@ export default function StaffPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Admin">Admin</SelectItem>
-                    <SelectItem value="Sales">Sales</SelectItem>
+                    <SelectItem value="Manager">Manager</SelectItem>
+                    <SelectItem value="Cashier">Cashier</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -151,42 +153,51 @@ export default function StaffPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {staffList.map((staff) => (
-              <TableRow key={staff.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                      {staff.name.charAt(0)}
-                    </div>
-                    <span className="font-medium">{staff.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {staff.role === 'Admin' ? <ShieldCheck className="w-4 h-4 text-primary" /> : <UserCheck className="w-4 h-4 text-muted-foreground" />}
-                    {staff.role}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    onClick={() => setStaffToDelete(staff)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+            {staffList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground italic">
+                  No staff members found.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              staffList.map((staff) => (
+                <TableRow key={staff.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        {staff.name.charAt(0)}
+                      </div>
+                      <span className="font-medium">{staff.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {staff.role === 'Admin' ? <ShieldCheck className="w-4 h-4 text-primary" /> : 
+                       staff.role === 'Manager' ? <Briefcase className="w-4 h-4 text-blue-500" /> :
+                       <UserCheck className="w-4 h-4 text-muted-foreground" />}
+                      {staff.role}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                      onClick={() => setStaffToDelete(staff)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!staffToDelete} onOpenChange={(open) => !open && setStaffToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

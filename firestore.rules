@@ -12,18 +12,6 @@
  * - /products/{productId}: Root collection for the product catalog.
  * - /orders/{orderId}: Root collection for finalized transactions.
  * - /orders/{orderId}/order_items/{itemId}: Subcollection for line items within an order.
- *
- * Key Security Decisions:
- * - Authorization Independence: To optimize performance and security, the 'cashierId' is 
- *   denormalized (copied) into both Order and OrderItem documents. This allows rules to 
- *   verify access without costly get() calls to parent documents.
- * - Staff Oversight: Users with 'Manager' or 'Admin' roles are granted broad read/write 
- *   permissions across the system for auditing and management.
- * - Public Read, Staff Write: The product catalog is readable by all authenticated 
- *   personnel but only modifiable by staff.
- * - Flexible Prototyping: While authorization is strictly enforced based on UIDs and Roles, 
- *   the specific internal schema of non-relational fields remains flexible to support rapid 
- *   development iterations.
  */
 
 rules_version = '2';
@@ -32,107 +20,53 @@ service cloud.firestore {
 
     // --- GLOBAL HELPER FUNCTIONS ---
 
-    /**
-     * Checks if the request is from an authenticated user.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the authenticated user's UID matches the provided ID.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Retrieves the role field from the user's profile document.
-     */
     function getUserRole() {
       return get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.role;
     }
 
-    /**
-     * Checks if the user has a specific role.
-     */
     function hasRole(role) {
       return isSignedIn() && getUserRole() == role;
     }
 
-    /**
-     * Checks if the user is a Manager or Admin.
-     */
+    // defines high-level staff who can manage inventory/profiles
     function isStaff() {
       return hasRole('Manager') || hasRole('Admin');
     }
 
-    /**
-     * Verifies if the authenticated user is the owner of an existing document.
-     * Combines ownership check with existence check for updates/deletes.
-     */
-    function isExistingOwner(ownerId) {
-      return resource != null && (request.auth.uid == ownerId || isStaff());
-    }
-
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Rules for user profiles. Users manage their own identity; Staff manage all.
-     * @path /userProfiles/{userId}
-     * @allow (get) Any user reading their own profile or Staff reading any profile.
-     * @deny (create) A user trying to create a profile with an ID other than their own Auth UID.
-     * @principle Enforces path-based ownership and Role-Based Access Control.
-     */
     match /userProfiles/{userId} {
-      allow get: if isOwner(userId) || isStaff();
-      allow list: if isStaff();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // Allow all staff to see names of colleagues
       allow create: if isOwner(userId);
-      allow update: if (isOwner(userId) || isStaff()) && resource != null;
-      allow delete: if isStaff() && resource != null;
+      allow update: if isOwner(userId) || isStaff();
+      allow delete: if isStaff();
     }
 
-    /**
-     * @description Product catalog access. All staff/cashiers can view; only Managers/Admins can edit.
-     * @path /products/{productId}
-     * @allow (list) An authenticated cashier browsing the catalog to ring up an item.
-     * @deny (update) A user with the 'Cashier' role attempting to change a product price.
-     * @principle Authorized-only read with restricted staff-only writes.
-     */
     match /products/{productId} {
       allow get, list: if isSignedIn();
-      allow create: if isStaff();
-      allow update: if isStaff() && resource != null;
-      allow delete: if isStaff() && resource != null;
+      allow create, update, delete: if isStaff();
     }
 
-    /**
-     * @description Transactional order data. Secured via denormalized 'cashierId'.
-     * @path /orders/{orderId}
-     * @allow (create) A cashier creating an order where 'cashierId' matches their UID.
-     * @deny (get) A cashier attempting to view an order processed by a different cashier.
-     * @principle Relational integrity via 'cashierId' and Ownership-based access.
-     */
     match /orders/{orderId} {
       allow get: if isStaff() || (resource != null && resource.data.cashierId == request.auth.uid);
-      allow list: if isStaff() || (isSignedIn()); // Listing requires client-side filtering by cashierId
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.cashierId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.cashierId) && request.resource.data.cashierId == resource.data.cashierId;
-      allow delete: if isStaff() && resource != null;
+      allow update: if isStaff() || (resource != null && resource.data.cashierId == request.auth.uid);
+      allow delete: if isStaff();
 
-      /**
-       * @description Line items for orders. Inherits security posture of the parent via denormalized ID.
-       * @path /orders/{orderId}/order_items/{orderItemId}
-       * @allow (create) Adding an item to an order the user owns.
-       * @deny (list) Accessing items for an order the user did not process.
-       * @principle Authorization Independence via denormalized ownership fields.
-       */
       match /order_items/{orderItemId} {
-        allow get: if isStaff() || (resource != null && resource.data.cashierId == request.auth.uid);
-        allow list: if isStaff() || (isSignedIn());
-        allow create: if isSignedIn() && request.resource.data.cashierId == request.auth.uid;
-        allow update: if isExistingOwner(resource.data.cashierId) && request.resource.data.cashierId == resource.data.cashierId;
-        allow delete: if isExistingOwner(resource.data.cashierId);
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if isStaff();
       }
     }
   }
