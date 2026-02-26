@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { useInventory, useOrders, useLanguage } from '@/lib/store'
+import { useInventory, useOrders, useLanguage, useAuth } from '@/lib/store'
 import { Product, CartItem, Order } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,8 @@ import {
   Plus, 
   Minus, 
   CheckCircle2, 
-  Scan
+  Scan,
+  User
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
@@ -24,6 +25,7 @@ export default function POSPage() {
   const { products, updateProduct } = useInventory()
   const { addOrder } = useOrders()
   const { t } = useLanguage()
+  const { currentUser } = useAuth()
   
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<CartItem[]>([])
@@ -83,14 +85,16 @@ export default function POSPage() {
   const total = subtotal + tax
 
   const finalizeOrder = () => {
-    if (cart.length === 0) return
+    if (cart.length === 0 || !currentUser) return
 
     const newOrder: Order = {
       id: Math.random().toString(36).substr(2, 9).toUpperCase(),
       date: new Date().toISOString(),
       items: cart,
       subtotal,
-      total
+      total,
+      cashierId: currentUser.id,
+      cashierName: currentUser.name
     }
 
     cart.forEach(item => {
@@ -104,27 +108,33 @@ export default function POSPage() {
     setCart([])
     toast({
       title: t.orderCompleted,
-      description: `${t.orderId}: ${newOrder.id}`,
+      description: `${t.orderId}: ${newOrder.id} - ${t.cashier}: ${currentUser.name}`,
     })
   }
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col md:flex-row gap-6">
       <div className="flex-1 flex flex-col gap-6 min-w-0">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder={t.searchProducts} 
-              className="pl-10"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+           <div className="flex-1 flex gap-4 w-full">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder={t.searchProducts} 
+                className="pl-10"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" className="gap-2 shrink-0">
+              <Scan className="w-4 h-4" />
+              {t.scan}
+            </Button>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Scan className="w-4 h-4" />
-            {t.scan}
-          </Button>
+          <div className="flex items-center gap-2 px-3 py-1 bg-secondary rounded-full text-sm font-medium">
+            <User className="w-4 h-4" />
+            <span>{currentUser?.name || '---'}</span>
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

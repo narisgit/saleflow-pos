@@ -10,7 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Search, Eye, FileText } from 'lucide-react'
+import { Search, Eye, FileText, User } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +23,7 @@ export default function HistoryPage() {
 
   const filteredOrders = orders.filter(o => 
     o.id.toLowerCase().includes(search.toLowerCase()) ||
+    o.cashierName.toLowerCase().includes(search.toLowerCase()) ||
     o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase()))
   )
 
@@ -49,7 +50,7 @@ export default function HistoryPage() {
             <TableRow>
               <TableHead>{t.orderId}</TableHead>
               <TableHead>{t.date}</TableHead>
-              <TableHead>{t.items}</TableHead>
+              <TableHead>{t.cashier}</TableHead>
               <TableHead>{t.total}</TableHead>
               <TableHead>{t.status}</TableHead>
               <TableHead className="text-right">{t.actions}</TableHead>
@@ -70,7 +71,10 @@ export default function HistoryPage() {
                     {new Date(order.date).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    {order.items.length} {t.items}
+                    <div className="flex items-center gap-2">
+                      <User className="w-3 h-3 text-muted-foreground" />
+                      {order.cashierName}
+                    </div>
                   </TableCell>
                   <TableCell className="font-bold">${order.total.toFixed(2)}</TableCell>
                   <TableCell>

@@ -14,10 +14,19 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface Staff {
+  id: string;
+  name: string;
+  role: 'Admin' | 'Sales';
+  active: boolean;
+}
+
 export interface Order {
   id: string;
   date: string;
   items: CartItem[];
   subtotal: number;
   total: number;
+  cashierId: string;
+  cashierName: string;
 }

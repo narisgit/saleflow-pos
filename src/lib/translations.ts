@@ -6,6 +6,7 @@ export const translations = {
     inventory: "Inventory",
     history: "Order History",
     settings: "Settings",
+    staff: "Staff Management",
     totalRevenue: "Total Revenue",
     ordersCompleted: "Orders Completed",
     itemsSold: "Items Sold",
@@ -44,7 +45,13 @@ export const translations = {
     limitReached: "Limit Reached",
     orderCompleted: "Order Completed!",
     scan: "Scan",
-    all: "All"
+    all: "All",
+    cashier: "Cashier",
+    switchUser: "Switch User",
+    role: "Role",
+    addStaff: "Add Staff",
+    active: "Active",
+    saveStaff: "Save Staff"
   },
   th: {
     dashboard: "แผงควบคุม",
@@ -52,6 +59,7 @@ export const translations = {
     inventory: "คลังสินค้า",
     history: "ประวัติการสั่งซื้อ",
     settings: "ตั้งค่า",
+    staff: "จัดการพนักงาน",
     totalRevenue: "รายได้รวม",
     ordersCompleted: "รายการสำเร็จ",
     itemsSold: "จำนวนชิ้นที่ขาย",
@@ -90,7 +98,13 @@ export const translations = {
     limitReached: "สินค้าไม่พอ",
     orderCompleted: "ชำระเงินเรียบร้อย!",
     scan: "สแกน",
-    all: "ทั้งหมด"
+    all: "ทั้งหมด",
+    cashier: "พนักงานขาย",
+    switchUser: "สลับผู้ใช้",
+    role: "ตำแหน่ง",
+    addStaff: "เพิ่มพนักงาน",
+    active: "สถานะ",
+    saveStaff: "บันทึกพนักงาน"
   }
 };
 

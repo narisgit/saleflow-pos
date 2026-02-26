@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Product, Order, CartItem } from './types';
+import { Product, Order, CartItem, Staff } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 import { Language, translations } from './translations';
 
@@ -26,17 +26,12 @@ const INITIAL_PRODUCTS: Product[] = [
     description: 'Slow-fermented sourdough artisan bread.',
     category: 'Bakery',
     imageUrl: PlaceHolderImages[2].imageUrl
-  },
-  {
-    id: '3',
-    name: 'Green Tea',
-    price: 3.50,
-    stock: 100,
-    barcode: '1111222233334',
-    description: 'Refreshing organic green tea from the hills.',
-    category: 'Beverages',
-    imageUrl: PlaceHolderImages[1].imageUrl
   }
+];
+
+const INITIAL_STAFF: Staff[] = [
+  { id: 's1', name: 'Somchai', role: 'Admin', active: true },
+  { id: 's2', name: 'Somsri', role: 'Sales', active: true }
 ];
 
 export function useLanguage() {
@@ -56,6 +51,54 @@ export function useLanguage() {
   const t = translations[lang];
 
   return { lang, toggleLanguage, t };
+}
+
+export function useAuth() {
+  const [currentUser, setCurrentUser] = useState<Staff | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('saleflow_current_user');
+    if (stored) {
+      setCurrentUser(JSON.parse(stored));
+    } else {
+      setCurrentUser(INITIAL_STAFF[0]);
+    }
+  }, []);
+
+  const login = (staff: Staff) => {
+    setCurrentUser(staff);
+    localStorage.setItem('saleflow_current_user', JSON.stringify(staff));
+  };
+
+  return { currentUser, login };
+}
+
+export function useStaff() {
+  const [staffList, setStaffList] = useState<Staff[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('saleflow_staff');
+    if (stored) {
+      setStaffList(JSON.parse(stored));
+    } else {
+      setStaffList(INITIAL_STAFF);
+      localStorage.setItem('saleflow_staff', JSON.stringify(INITIAL_STAFF));
+    }
+  }, []);
+
+  const addStaff = (staff: Staff) => {
+    const updated = [...staffList, staff];
+    setStaffList(updated);
+    localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+  };
+
+  const deleteStaff = (id: string) => {
+    const updated = staffList.filter(s => s.id !== id);
+    setStaffList(updated);
+    localStorage.setItem('saleflow_staff', JSON.stringify(updated));
+  };
+
+  return { staffList, addStaff, deleteStaff };
 }
 
 export function useInventory() {
