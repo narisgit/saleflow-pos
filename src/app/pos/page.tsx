@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useInventory, useOrders, useLanguage } from '@/lib/store'
 import { useUser } from '@/firebase'
 import { Product, CartItem, Order } from '@/lib/types'
@@ -18,8 +18,17 @@ import {
   CheckCircle2, 
   Scan,
   User as UserIcon,
-  Loader2
+  Loader2,
+  Camera
 } from 'lucide-react'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter
+} from '@/components/ui/dialog'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 
@@ -32,6 +41,11 @@ export default function POSPage() {
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<CartItem[]>([])
   const [activeCategory, setActiveCategory] = useState('All')
+
+  // Scanner State
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const currentUser = useMemo(() => {
     if (!user) return null;
@@ -54,7 +68,7 @@ export default function POSPage() {
 
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
-      toast({ title: t.outOfStock, description: t.outOfStock, variant: "destructive" })
+      toast({ title: t.outOfStock, description: "สินค้าในสต็อกไม่เพียงพอ", variant: "destructive" })
       return
     }
 
@@ -62,7 +76,7 @@ export default function POSPage() {
       const existing = prev.find(item => item.id === product.id)
       if (existing) {
         if (existing.quantity >= product.stock) {
-          toast({ title: t.limitReached, description: t.limitReached, variant: "destructive" })
+          toast({ title: t.limitReached, description: "ถึงจำนวนจำกัดในสต็อกแล้ว", variant: "destructive" })
           return prev
         }
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
@@ -81,7 +95,7 @@ export default function POSPage() {
         const newQty = Math.max(1, item.quantity + delta)
         const product = products.find(p => p.id === id)
         if (product && newQty > product.stock) {
-          toast({ title: t.limitReached, description: t.limitReached, variant: "destructive" })
+          toast({ title: t.limitReached, description: "จำนวนสินค้าเกินสต็อกที่มี", variant: "destructive" })
           return item
         }
         return { ...item, quantity: newQty }
@@ -123,6 +137,49 @@ export default function POSPage() {
     })
   }
 
+  // Camera Permission Logic
+  useEffect(() => {
+    if (isScannerOpen) {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'เข้าถึงกล้องไม่ได้',
+            description: 'กรุณาอนุญาตให้ใช้งานกล้องในตั้งค่าเบราว์เซอร์',
+          });
+        }
+      };
+      getCameraPermission();
+    } else {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        tracks.forEach(track => track.stop());
+      }
+    }
+  }, [isScannerOpen]);
+
+  const simulateScan = () => {
+    // ในแอปจริงจะใช้ library ถอดรหัสบาร์โค้ดจากวิดีโอ
+    // ที่นี่เราจะสุ่มสินค้าที่มีบาร์โค้ดมาแสดงตัวอย่างการสแกน
+    if (products.length === 0) {
+      toast({ title: "ไม่พบสินค้า", description: "กรุณาเพิ่มสินค้าลงในคลังก่อน", variant: "destructive" });
+      return;
+    }
+    
+    const randomProduct = products[Math.floor(Math.random() * products.length)];
+    addToCart(randomProduct);
+    setIsScannerOpen(false);
+    toast({ title: "สแกนสำเร็จ", description: `พบสินค้า: ${randomProduct.name}` });
+  }
+
   if (isInventoryLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -145,7 +202,7 @@ export default function POSPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="gap-2 shrink-0">
+            <Button variant="outline" className="gap-2 shrink-0" onClick={() => setIsScannerOpen(true)}>
               <Scan className="w-4 h-4" />
               {t.scan}
             </Button>
@@ -291,6 +348,37 @@ export default function POSPage() {
           </Button>
         </div>
       </Card>
+
+      {/* Scanner Dialog */}
+      <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>สแกนบาร์โค้ดสินค้า</DialogTitle>
+          </DialogHeader>
+          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex items-center justify-center">
+            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
+            <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
+            
+            {hasCameraPermission === false && (
+              <div className="absolute inset-0 bg-background/90 flex items-center justify-center p-6 text-center">
+                <Alert variant="destructive">
+                  <AlertTitle>เข้าถึงกล้องไม่ได้</AlertTitle>
+                  <AlertDescription>
+                    กรุณาอนุญาตให้แอปเข้าถึงกล้องเพื่อสแกนบาร์โค้ดสินค้า
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+          </div>
+          <div className="text-center text-sm text-muted-foreground">
+            หันกล้องไปที่บาร์โค้ดบนซองสินค้าสัตว์เลี้ยง
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
+            <Button onClick={simulateScan}>จำลองการสแกน</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
