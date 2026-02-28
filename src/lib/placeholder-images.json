@@ -1,40 +1,22 @@
 {
   "placeholderImages": [
     {
-      "id": "pet-food-1",
-      "description": "Premium Cat Food Bag",
-      "imageUrl": "https://images.unsplash.com/photo-1589924691106-90651efc1688?q=80&w=1000&auto=format&fit=crop",
-      "imageHint": "cat food packaging"
+      "id": "pet-food-premium",
+      "description": "Premium Pet Food Bag",
+      "imageUrl": "https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?q=80&w=1000&auto=format&fit=crop",
+      "imageHint": "pet food bag"
     },
     {
-      "id": "pet-food-2",
-      "description": "Dog Treats Pouch",
-      "imageUrl": "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=1000&auto=format&fit=crop",
-      "imageHint": "dog treats bag"
-    },
-    {
-      "id": "pet-food-3",
-      "description": "Cat Wet Food Can",
+      "id": "cat-food-can",
+      "description": "Canned Cat Food",
       "imageUrl": "https://images.unsplash.com/photo-1591768793355-74d75b0baacb?q=80&w=1000&auto=format&fit=crop",
       "imageHint": "canned pet food"
     },
     {
-      "id": "pet-food-4",
-      "description": "Large Dog Food Sack",
+      "id": "dog-treats",
+      "description": "Dog Treats Package",
       "imageUrl": "https://images.unsplash.com/photo-1544568100-847a948585b9?q=80&w=1000&auto=format&fit=crop",
-      "imageHint": "dog food sack"
-    },
-    {
-      "id": "pet-food-5",
-      "description": "Pet Grooming Kit",
-      "imageUrl": "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1000&auto=format&fit=crop",
-      "imageHint": "pet shampoo bottle"
-    },
-    {
-      "id": "pet-food-6",
-      "description": "Bird Feed Box",
-      "imageUrl": "https://images.unsplash.com/photo-1620694563886-c3a80ee55f41?q=80&w=1000&auto=format&fit=crop",
-      "imageHint": "bird seed box"
+      "imageHint": "dog treats"
     }
   ]
 }

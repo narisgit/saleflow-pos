@@ -16,7 +16,7 @@ import {
   Camera,
   Image as ImageIcon,
   X,
-  Upload
+  RefreshCw
 } from 'lucide-react'
 import { 
   Table, 
@@ -89,15 +89,18 @@ export default function InventoryPage() {
 
   const handleSave = () => {
     if (!formData.name || formData.price === undefined || !formData.barcode) {
-      toast({ title: "Error", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", variant: "destructive" })
+      toast({ title: "ข้อผิดพลาด", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", variant: "destructive" })
       return
     }
+
+    const finalImageUrl = formData.imageUrl || `https://picsum.photos/seed/${formData.name || Date.now()}/400/300`
 
     const productData = {
       ...formData,
       price: Number(formData.price),
       stock: Number(formData.stock),
-      category: formData.category || 'ทั่วไป'
+      category: formData.category || 'ทั่วไป',
+      imageUrl: finalImageUrl
     }
 
     if (editingProduct) {
@@ -115,7 +118,7 @@ export default function InventoryPage() {
         barcode: formData.barcode!,
         category: formData.category || 'ทั่วไป',
         description: formData.description || '',
-        imageUrl: formData.imageUrl || `https://picsum.photos/seed/${formData.name}/400/300`
+        imageUrl: finalImageUrl
       }
       addProduct(newProduct)
       toast({ title: t.completed, description: `เพิ่มสินค้า ${newProduct.name} เรียบร้อย` })
@@ -133,7 +136,7 @@ export default function InventoryPage() {
     try {
       const result = await generateProductDescription({
         productName: formData.name,
-        attributes: [formData.category || 'สินค้าสัตว์เลี้ยง', `$${formData.price}`]
+        attributes: [formData.category || 'สินค้าสัตว์เลี้ยง', `ราคา ${formData.price} บาท`]
       })
       if (result && result.description) {
         setFormData(prev => ({ ...prev, description: result.description }))
@@ -156,6 +159,12 @@ export default function InventoryPage() {
   const generateBarcode = () => {
     const code = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString()
     setFormData(prev => ({ ...prev, barcode: code }))
+  }
+
+  const useDefaultImage = () => {
+    const randomImg = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)]
+    setFormData(prev => ({ ...prev, imageUrl: randomImg.imageUrl }))
+    toast({ title: "เปลี่ยนรูปภาพแล้ว", description: "ใช้รูปบรรจุภัณฑ์มาตรฐาน" })
   }
 
   // Camera Permission Logic
@@ -199,7 +208,7 @@ export default function InventoryPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary">{t.inventory}</h1>
-          <p className="text-muted-foreground">จัดการคลังสินค้าและรูปภาพ</p>
+          <p className="text-muted-foreground">จัดการคลังสินค้าและรูปภาพบรรจุภัณฑ์</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -213,43 +222,47 @@ export default function InventoryPage() {
               <DialogTitle>{editingProduct ? "แก้ไขสินค้า" : t.addProduct}</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-              {/* Left Side: Image Selection & Preview */}
+              {/* Left Side: Image Preview & URL */}
               <div className="space-y-4">
-                <Label className="text-base font-bold">รูปภาพสินค้า</Label>
+                <Label className="text-base font-bold">รูปบรรจุภัณฑ์สินค้า</Label>
                 
-                {/* Main Preview */}
-                <div className="relative aspect-square rounded-xl bg-muted border-2 border-dashed border-muted-foreground/20 overflow-hidden flex items-center justify-center group">
+                <div className="relative aspect-square rounded-xl bg-muted border-2 border-dashed border-muted-foreground/20 overflow-hidden flex items-center justify-center group shadow-inner">
                   {formData.imageUrl ? (
                     <>
                       <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
-                      <Button 
-                        variant="destructive" 
-                        size="icon" 
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setFormData(f => ({ ...f, imageUrl: '' }))}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Button variant="secondary" size="sm" onClick={useDefaultImage} className="gap-2">
+                          <RefreshCw className="w-4 h-4" />
+                          สุ่มรูปใหม่
+                        </Button>
+                        <Button variant="destructive" size="icon" onClick={() => setFormData(f => ({ ...f, imageUrl: '' }))}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </>
                   ) : (
-                    <div className="text-center p-4">
-                      <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground/50 mb-2" />
-                      <p className="text-xs text-muted-foreground">เลือกรูปภาพจากด้านล่าง</p>
+                    <div className="text-center p-6 space-y-3">
+                      <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm">
+                        <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">ไม่มีรูปภาพแสดงผล<br/>กดปุ่มด้านล่างเพื่อเลือกรูปตัวอย่าง</p>
+                      <Button variant="outline" size="sm" onClick={useDefaultImage} className="mt-2">
+                        <Plus className="w-4 h-4 mr-2" />
+                        ใช้รูปบรรจุภัณฑ์
+                      </Button>
                     </div>
                   )}
                 </div>
 
-                {/* Grid of Choices */}
-                <div className="grid grid-cols-3 gap-2">
-                  {PlaceHolderImages.map((img) => (
-                    <div 
-                      key={img.id}
-                      onClick={() => setFormData(f => ({ ...f, imageUrl: img.imageUrl }))}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all hover:scale-105 ${formData.imageUrl === img.imageUrl ? 'border-primary ring-4 ring-primary/20 scale-105' : 'border-transparent opacity-80'}`}
-                    >
-                      <Image src={img.imageUrl} alt={img.description} fill className="object-cover" />
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl" className="text-xs text-muted-foreground">หรือใส่ URL รูปภาพสินค้า</Label>
+                  <Input 
+                    id="imageUrl" 
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.imageUrl}
+                    onChange={e => setFormData(f => ({ ...f, imageUrl: e.target.value }))}
+                    className="text-xs"
+                  />
                 </div>
               </div>
 
