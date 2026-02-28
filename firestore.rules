@@ -36,13 +36,8 @@ service cloud.firestore {
     // --- COLLECTION RULES ---
 
     match /userProfiles/{userId} {
-      // พนักงานทุกคนเห็นรายชื่อกันได้
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(userId);
-      // เฉพาะเจ้าของโปรไฟล์ หรือ Admin/Manager ถึงจะแก้ได้
-      allow update: if isOwner(userId) || isAdminOrManager();
-      // เฉพาะ Admin เท่านั้นที่ลบพนักงานได้
-      allow delete: if isAdmin();
+      // พนักงานทุกคนเข้าถึงและจัดการรายชื่อพนักงานได้ เพื่อความยืดหยุ่นในการใช้รหัสพนักงานแบบกำหนดเอง
+      allow read, write: if isSignedIn();
     }
 
     match /products/{productId} {
