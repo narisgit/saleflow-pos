@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   UserCheck,
   Briefcase,
-  Fingerprint
+  Fingerprint,
+  Edit
 } from 'lucide-react'
 import { 
   Table, 
@@ -54,7 +55,8 @@ import { Badge } from '@/components/ui/badge'
 export default function StaffPage() {
   const { staffList, addStaff, deleteStaff } = useStaff()
   const { t } = useLanguage()
-  const [isAdding, setIsAdding] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
   const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null)
 
   const [formData, setFormData] = useState<Partial<Staff>>({
@@ -65,7 +67,22 @@ export default function StaffPage() {
     email: ''
   })
 
-  const handleAdd = () => {
+  const resetForm = () => {
+    setFormData({ id: '', name: '', role: 'Cashier', active: true, email: '' })
+    setEditingStaff(null)
+  }
+
+  const handleOpenDialog = (staff?: Staff) => {
+    if (staff) {
+      setEditingStaff(staff)
+      setFormData(staff)
+    } else {
+      resetForm()
+    }
+    setIsDialogOpen(true)
+  }
+
+  const handleSave = () => {
     if (!formData.name) {
       toast({ title: "ข้อผิดพลาด", description: "กรุณาระบุชื่อพนักงาน", variant: "destructive" })
       return
@@ -73,7 +90,7 @@ export default function StaffPage() {
 
     const finalId = formData.id || Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    const newStaff: Staff = {
+    const staffData: Staff = {
       id: finalId,
       name: formData.name!,
       role: (formData.role as any) || 'Cashier',
@@ -81,10 +98,13 @@ export default function StaffPage() {
       email: formData.email || ''
     }
 
-    addStaff(newStaff)
-    setIsAdding(false)
-    setFormData({ id: '', name: '', role: 'Cashier', email: '' })
-    toast({ title: t.completed, description: `เพิ่มพนักงาน ${newStaff.name} เรียบร้อยแล้ว` })
+    addStaff(staffData)
+    setIsDialogOpen(false)
+    resetForm()
+    toast({ 
+      title: t.completed, 
+      description: editingStaff ? `แก้ไขข้อมูลพนักงาน ${staffData.name} เรียบร้อยแล้ว` : `เพิ่มพนักงาน ${staffData.name} เรียบร้อยแล้ว` 
+    })
   }
 
   const confirmDelete = () => {
@@ -102,16 +122,16 @@ export default function StaffPage() {
           <h1 className="text-3xl font-headline font-bold text-primary">{t.staff}</h1>
           <p className="text-muted-foreground">จัดการข้อมูลและสิทธิ์เข้าใช้งานของพนักงาน</p>
         </div>
-        <Dialog open={isAdding} onOpenChange={setIsAdding}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
+            <Button onClick={() => handleOpenDialog()} className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
               <Plus className="w-4 h-4 mr-2" />
               {t.addStaff}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{t.addStaff}</DialogTitle>
+              <DialogTitle>{editingStaff ? "แก้ไขข้อมูลพนักงาน" : t.addStaff}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-6 py-4">
               <div className="space-y-2">
@@ -120,12 +140,14 @@ export default function StaffPage() {
                   <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     id="staff-id" 
-                    placeholder="เช่น STAFF001 (หากไม่ระบุจะสร้างให้อัตโนมัติ)"
+                    placeholder="เช่น STAFF001"
                     value={formData.id} 
                     onChange={e => setFormData(f => ({ ...f, id: e.target.value }))}
+                    disabled={!!editingStaff}
                     className="pl-10" 
                   />
                 </div>
+                {editingStaff && <p className="text-[10px] text-muted-foreground italic">รหัสพนักงานไม่สามารถแก้ไขได้</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">{t.name}</Label>
@@ -164,8 +186,8 @@ export default function StaffPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAdding(false)}>{t.cancel}</Button>
-              <Button onClick={handleAdd}>{t.saveStaff}</Button>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
+              <Button onClick={handleSave}>{editingStaff ? "บันทึกการแก้ไข" : t.saveStaff}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -220,14 +242,24 @@ export default function StaffPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                      onClick={() => setStaffToDelete(staff)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 hover:text-primary"
+                        onClick={() => handleOpenDialog(staff)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        onClick={() => setStaffToDelete(staff)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
