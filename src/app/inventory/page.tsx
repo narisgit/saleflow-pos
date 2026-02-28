@@ -15,7 +15,8 @@ import {
   Barcode,
   Camera,
   Image as ImageIcon,
-  X
+  X,
+  Upload
 } from 'lucide-react'
 import { 
   Table, 
@@ -88,18 +89,23 @@ export default function InventoryPage() {
 
   const handleSave = () => {
     if (!formData.name || formData.price === undefined || !formData.barcode) {
-      toast({ title: "Error", description: "Fill required fields.", variant: "destructive" })
+      toast({ title: "Error", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", variant: "destructive" })
       return
+    }
+
+    const productData = {
+      ...formData,
+      price: Number(formData.price),
+      stock: Number(formData.stock),
+      category: formData.category || 'ทั่วไป'
     }
 
     if (editingProduct) {
       updateProduct({
         ...editingProduct,
-        ...formData,
-        price: Number(formData.price),
-        stock: Number(formData.stock)
+        ...productData
       } as Product)
-      toast({ title: t.completed, description: `Updated ${formData.name}` })
+      toast({ title: t.completed, description: `แก้ไขข้อมูล ${formData.name} เรียบร้อย` })
     } else {
       const newProduct: Product = {
         id: Math.random().toString(36).substr(2, 9),
@@ -107,12 +113,12 @@ export default function InventoryPage() {
         price: Number(formData.price),
         stock: Number(formData.stock),
         barcode: formData.barcode!,
-        category: formData.category || 'Uncategorized',
+        category: formData.category || 'ทั่วไป',
         description: formData.description || '',
         imageUrl: formData.imageUrl || `https://picsum.photos/seed/${formData.name}/400/300`
       }
       addProduct(newProduct)
-      toast({ title: t.completed, description: `Added ${newProduct.name}` })
+      toast({ title: t.completed, description: `เพิ่มสินค้า ${newProduct.name} เรียบร้อย` })
     }
     setIsDialogOpen(false)
     resetForm()
@@ -120,26 +126,26 @@ export default function InventoryPage() {
 
   const generateAI = async () => {
     if (!formData.name) {
-      toast({ title: "Please enter product name first", variant: "default" })
+      toast({ title: "กรุณาใส่ชื่อสินค้าก่อนใช้ AI", variant: "default" })
       return
     }
     setIsGenerating(true)
     try {
       const result = await generateProductDescription({
         productName: formData.name,
-        attributes: [formData.category || 'General', `$${formData.price}`]
+        attributes: [formData.category || 'สินค้าสัตว์เลี้ยง', `$${formData.price}`]
       })
       if (result && result.description) {
         setFormData(prev => ({ ...prev, description: result.description }))
-        toast({ title: "Description generated!" })
+        toast({ title: "สร้างคำบรรยายสำเร็จ!" })
       } else {
-        throw new Error("No description returned from AI")
+        throw new Error("AI ไม่สามารถสร้างข้อมูลได้")
       }
     } catch (e: any) {
       console.error('AI Generation Error:', e)
       toast({ 
-        title: "AI Generation Failed", 
-        description: e.message || "Please try again with a different name.",
+        title: "AI เกิดข้อผิดพลาด", 
+        description: e.message || "กรุณาลองใหม่อีกครั้ง",
         variant: "destructive" 
       })
     } finally {
@@ -167,14 +173,13 @@ export default function InventoryPage() {
           setHasCameraPermission(false);
           toast({
             variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions to use the scanner.',
+            title: 'เข้าถึงกล้องไม่ได้',
+            description: 'กรุณาอนุญาตให้ใช้งานกล้องในตั้งค่าเบราว์เซอร์',
           });
         }
       };
       getCameraPermission();
     } else {
-      // Stop camera stream when scanner is closed
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach(track => track.stop());
@@ -186,7 +191,7 @@ export default function InventoryPage() {
     const scannedCode = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
     setFormData(prev => ({ ...prev, barcode: scannedCode }));
     setIsScannerOpen(false);
-    toast({ title: "Scan Successful", description: `Detected: ${scannedCode}` });
+    toast({ title: "สแกนสำเร็จ", description: `รหัสที่พบ: ${scannedCode}` });
   }
 
   return (
@@ -194,7 +199,7 @@ export default function InventoryPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary">{t.inventory}</h1>
-          <p className="text-muted-foreground">{t.inventory} Management</p>
+          <p className="text-muted-foreground">จัดการคลังสินค้าและรูปภาพ</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -203,114 +208,143 @@ export default function InventoryPage() {
               {t.addProduct}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingProduct ? t.actions : t.addProduct}</DialogTitle>
+              <DialogTitle>{editingProduct ? "แก้ไขสินค้า" : t.addProduct}</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-6 py-4">
-              {/* Image Selection Section */}
-              <div className="space-y-3">
-                <Label>{t.receipt} Image</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+              {/* Left Side: Image Selection & Preview */}
+              <div className="space-y-4">
+                <Label className="text-base font-bold">รูปภาพสินค้า</Label>
+                
+                {/* Main Preview */}
+                <div className="relative aspect-square rounded-xl bg-muted border-2 border-dashed border-muted-foreground/20 overflow-hidden flex items-center justify-center group">
+                  {formData.imageUrl ? (
+                    <>
+                      <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setFormData(f => ({ ...f, imageUrl: '' }))}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="text-center p-4">
+                      <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground/50 mb-2" />
+                      <p className="text-xs text-muted-foreground">เลือกรูปภาพจากด้านล่าง</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Grid of Choices */}
                 <div className="grid grid-cols-3 gap-2">
-                  {PlaceHolderImages.slice(0, 6).map((img) => (
+                  {PlaceHolderImages.map((img) => (
                     <div 
                       key={img.id}
                       onClick={() => setFormData(f => ({ ...f, imageUrl: img.imageUrl }))}
-                      className={`relative aspect-square rounded-md overflow-hidden border-2 cursor-pointer transition-all ${formData.imageUrl === img.imageUrl ? 'border-primary ring-2 ring-primary/20' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                      className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all hover:scale-105 ${formData.imageUrl === img.imageUrl ? 'border-primary ring-4 ring-primary/20 scale-105' : 'border-transparent opacity-80'}`}
                     >
                       <Image src={img.imageUrl} alt={img.description} fill className="object-cover" />
                     </div>
                   ))}
                 </div>
-                {formData.imageUrl && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted p-2 rounded">
-                    <ImageIcon className="w-3 h-3" />
-                    <span className="truncate">{formData.imageUrl}</span>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => setFormData(f => ({ ...f, imageUrl: '' }))}>
-                      <X className="w-3 h-3" />
-                    </Button>
+              </div>
+
+              {/* Right Side: Form Data */}
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">{t.name}</Label>
+                    <Input 
+                      id="name" 
+                      placeholder="เช่น อาหารแมวเกรดพรีเมียม"
+                      value={formData.name} 
+                      onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
+                    />
                   </div>
-                )}
-              </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">{t.price}</Label>
+                      <Input 
+                        id="price" 
+                        type="number" 
+                        value={formData.price} 
+                        onChange={e => setFormData(f => ({ ...f, price: Number(e.target.value) }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stock">{t.stock}</Label>
+                      <Input 
+                        id="stock" 
+                        type="number" 
+                        value={formData.stock} 
+                        onChange={e => setFormData(f => ({ ...f, stock: Number(e.target.value) }))}
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t.name}</Label>
-                  <Input 
-                    id="name" 
-                    value={formData.name} 
-                    onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">{t.category}</Label>
-                  <Input 
-                    id="category" 
-                    value={formData.category} 
-                    onChange={e => setFormData(f => ({ ...f, category: e.target.value }))}
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">{t.category}</Label>
+                    <Input 
+                      id="category" 
+                      placeholder="เช่น อาหารแมว, ขนมสุนัข"
+                      value={formData.category} 
+                      onChange={e => setFormData(f => ({ ...f, category: e.target.value }))}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">{t.price}</Label>
-                  <Input 
-                    id="price" 
-                    type="number" 
-                    value={formData.price} 
-                    onChange={e => setFormData(f => ({ ...f, price: Number(e.target.value) }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="stock">{t.stock}</Label>
-                  <Input 
-                    id="stock" 
-                    type="number" 
-                    value={formData.stock} 
-                    onChange={e => setFormData(f => ({ ...f, stock: Number(e.target.value) }))}
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="barcode">{t.barcode}</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id="barcode" 
+                        value={formData.barcode} 
+                        onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))}
+                        className="flex-1 font-mono"
+                      />
+                      <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากกล้อง">
+                        <Camera className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" onClick={generateBarcode} title="สุ่มบาร์โค้ด">
+                        <Barcode className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="barcode">{t.barcode}</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    id="barcode" 
-                    value={formData.barcode} 
-                    onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))}
-                    className="flex-1"
-                  />
-                  <Button variant="outline" className="gap-2" onClick={() => setIsScannerOpen(true)}>
-                    <Camera className="w-4 h-4" />
-                    {t.scan}
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={generateBarcode}>
-                    <Barcode className="w-4 h-4" />
-                  </Button>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="description">{t.description}</Label>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={generateAI} 
+                        disabled={isGenerating}
+                        className="text-primary hover:text-primary/80"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        {isGenerating ? "กำลังสร้าง..." : "ใช้ AI เขียนคำบรรยาย"}
+                      </Button>
+                    </div>
+                    <Textarea 
+                      id="description" 
+                      className="h-32 text-sm leading-relaxed"
+                      placeholder="เขียนคำอธิบายสินค้า..."
+                      value={formData.description}
+                      onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="description">{t.description}</Label>
-                  <Button variant="ghost" size="sm" onClick={generateAI} disabled={isGenerating}>
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    {isGenerating ? t.generating : t.aiEnhance}
-                  </Button>
-                </div>
-                <Textarea 
-                  id="description" 
-                  className="h-24"
-                  value={formData.description}
-                  onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
-                />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="mt-4 gap-2">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
-              <Button onClick={handleSave}>{editingProduct ? t.saveProduct : t.saveProduct}</Button>
+              <Button onClick={handleSave} className="min-w-[120px]">
+                {editingProduct ? "บันทึกการแก้ไข" : "เพิ่มสินค้าใหม่"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -319,8 +353,8 @@ export default function InventoryPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input 
-          placeholder={t.searchProducts} 
-          className="pl-10 h-12"
+          placeholder="ค้นหาตามชื่อสินค้า, หมวดหมู่ หรือบาร์โค้ด..." 
+          className="pl-10 h-12 shadow-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -330,7 +364,7 @@ export default function InventoryPage() {
       <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{t.scan} {t.barcode}</DialogTitle>
+            <DialogTitle>สแกนบาร์โค้ดจากสินค้า</DialogTitle>
           </DialogHeader>
           <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex items-center justify-center">
             <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
@@ -339,20 +373,20 @@ export default function InventoryPage() {
             {hasCameraPermission === false && (
               <div className="absolute inset-0 bg-background/90 flex items-center justify-center p-6 text-center">
                 <Alert variant="destructive">
-                  <AlertTitle>Camera Access Required</AlertTitle>
+                  <AlertTitle>เข้าถึงกล้องไม่ได้</AlertTitle>
                   <AlertDescription>
-                    Please allow camera access to use the barcode scanner.
+                    กรุณาอนุญาตให้แอปเข้าถึงกล้องเพื่อสแกนบาร์โค้ด
                   </AlertDescription>
                 </Alert>
               </div>
             )}
           </div>
           <div className="text-center text-sm text-muted-foreground">
-            Point your camera at the product barcode
+            หันกล้องไปที่บาร์โค้ดบนบรรจุภัณฑ์สินค้า
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
-            <Button onClick={simulateScan}>Simulate Scan</Button>
+            <Button onClick={simulateScan}>จำลองการสแกน</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -360,8 +394,8 @@ export default function InventoryPage() {
       <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Image</TableHead>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-[100px]">รูปสินค้า</TableHead>
               <TableHead>{t.name}</TableHead>
               <TableHead>{t.barcode}</TableHead>
               <TableHead>{t.category}</TableHead>
@@ -374,37 +408,46 @@ export default function InventoryPage() {
             {filteredProducts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12 text-muted-foreground italic">
-                  {t.noProducts}
+                  ไม่พบสินค้าที่ตรงตามเงื่อนไข
                 </TableCell>
               </TableRow>
             ) : (
               filteredProducts.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
                   <TableCell>
-                    <div className="w-12 h-12 rounded bg-muted relative overflow-hidden">
-                      {product.imageUrl && <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />}
+                    <div className="w-14 h-14 rounded-lg bg-muted relative overflow-hidden border shadow-sm">
+                      {product.imageUrl && <Image src={product.imageUrl} alt="" fill className="object-cover" />}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{product.name}</div>
+                    <div className="font-medium text-sm">{product.name}</div>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{product.barcode}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{product.category}</Badge>
                   </TableCell>
-                  <TableCell className="font-semibold">${product.price.toFixed(2)}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
+                  <TableCell className="font-bold text-primary">${product.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <span className={`font-medium ${product.stock < 10 ? 'text-destructive' : ''}`}>
+                      {product.stock}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-1">
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8" 
+                        className="h-8 w-8 hover:text-primary" 
                         onClick={() => handleOpenDialog(product)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteProduct(product.id)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10" 
+                        onClick={() => deleteProduct(product.id)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
