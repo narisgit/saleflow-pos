@@ -19,7 +19,8 @@ import {
   Scan,
   User as UserIcon,
   Loader2,
-  Camera
+  Camera,
+  Percent
 } from 'lucide-react'
 import { 
   Dialog, 
@@ -29,6 +30,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Label } from '@/components/ui/label'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 
@@ -41,6 +43,7 @@ export default function POSPage() {
   const [search, setSearch] = useState('')
   const [cart, setCart] = useState<CartItem[]>([])
   const [activeCategory, setActiveCategory] = useState('All')
+  const [taxRate, setTaxRate] = useState(7) // Default VAT 7%
 
   // Scanner State
   const [isScannerOpen, setIsScannerOpen] = useState(false)
@@ -105,7 +108,7 @@ export default function POSPage() {
   }
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
-  const tax = subtotal * 0.07 // ภาษี 7%
+  const tax = subtotal * (taxRate / 100)
   const total = subtotal + tax
 
   const finalizeOrder = () => {
@@ -167,8 +170,6 @@ export default function POSPage() {
   }, [isScannerOpen]);
 
   const simulateScan = () => {
-    // ในแอปจริงจะใช้ library ถอดรหัสบาร์โค้ดจากวิดีโอ
-    // ที่นี่เราจะสุ่มสินค้าที่มีบาร์โค้ดมาแสดงตัวอย่างการสแกน
     if (products.length === 0) {
       toast({ title: "ไม่พบสินค้า", description: "กรุณาเพิ่มสินค้าลงในคลังก่อน", variant: "destructive" });
       return;
@@ -328,8 +329,19 @@ export default function POSPage() {
               <span className="text-muted-foreground">{t.subtotal}</span>
               <span>{subtotal.toLocaleString()} ฿</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{t.tax} (7%)</span>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <span>{t.tax}</span>
+                <div className="flex items-center border rounded px-1 bg-background h-7">
+                  <Input 
+                    type="number" 
+                    value={taxRate} 
+                    onChange={(e) => setTaxRate(Number(e.target.value))}
+                    className="w-10 h-6 border-none p-0 text-center text-xs focus-visible:ring-0"
+                  />
+                  <span className="text-[10px]">%</span>
+                </div>
+              </div>
               <span>{tax.toLocaleString()} ฿</span>
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
