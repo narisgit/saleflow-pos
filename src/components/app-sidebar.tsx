@@ -13,7 +13,8 @@ import {
   Users,
   ChevronRight,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  BookOpen
 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -54,6 +55,7 @@ export function AppSidebar() {
     { name: t.inventory, href: "/inventory", icon: Package },
     { name: t.history, href: "/history", icon: History },
     { name: t.staff, href: "/staff", icon: Users },
+    { name: "คู่มือการใช้งาน", href: "/manual", icon: BookOpen },
   ]
 
   const handleLogout = async () => {

@@ -1,11 +1,3 @@
-/**
- * SaleFlow POS Security Rules
- *
- * Core Philosophy:
- * This ruleset implements a robust Role-Based Access Control (RBAC) system.
- * It allows all signed-in staff to manage inventory and sales, while restricting
- * sensitive administrative tasks (like deleting staff) to Managers and Admins.
- */
 
 rules_version = '2';
 service cloud.firestore {
@@ -21,41 +13,53 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function getUserRole() {
-      return get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.role;
+    function getUserData() {
+      return get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data;
     }
 
     function hasRole(role) {
-      return isSignedIn() && getUserRole() == role;
+      return isSignedIn() && getUserData().role == role;
     }
 
-    // defines high-level staff who can manage roles and deletion
+    function isAdmin() {
+      return hasRole('Admin');
+    }
+
+    function isManager() {
+      return hasRole('Manager');
+    }
+
     function isAdminOrManager() {
-      return hasRole('Manager') || hasRole('Admin');
+      return isAdmin() || isManager();
     }
 
     // --- COLLECTION RULES ---
 
     match /userProfiles/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn(); // Allow staff to see colleagues
+      // พนักงานทุกคนเห็นรายชื่อกันได้
+      allow get, list: if isSignedIn();
       allow create: if isOwner(userId);
+      // เฉพาะเจ้าของโปรไฟล์ หรือ Admin/Manager ถึงจะแก้ได้
       allow update: if isOwner(userId) || isAdminOrManager();
-      allow delete: if isAdminOrManager();
+      // เฉพาะ Admin เท่านั้นที่ลบพนักงานได้
+      allow delete: if isAdmin();
     }
 
     match /products/{productId} {
       allow get, list: if isSignedIn();
-      // Allow all signed-in staff to manage products for operational flexibility
+      // พนักงานทุกคนจัดการสินค้าได้ (ปรับตามความต้องการผู้ใช้ที่ต้องการความคล่องตัว)
       allow create, update, delete: if isSignedIn();
     }
 
     match /orders/{orderId} {
+      // Admin/Manager เห็นหมด หรือ Cashier เห็นของตัวเอง
       allow get: if isAdminOrManager() || (resource != null && resource.data.cashierId == request.auth.uid);
       allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.cashierId == request.auth.uid;
+      allow create: if isSignedIn();
+      // เฉพาะ Admin/Manager หรือเจ้าของรายการถึงจะแก้ได้
       allow update: if isAdminOrManager() || (resource != null && resource.data.cashierId == request.auth.uid);
-      allow delete: if isAdminOrManager();
+      // เฉพาะ Admin เท่านั้นที่ลบประวัติการขายได้
+      allow delete: if isAdmin();
 
       match /order_items/{orderItemId} {
         allow get, list: if isSignedIn();
