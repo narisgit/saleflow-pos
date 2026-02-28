@@ -1,4 +1,3 @@
-
 export const translations = {
   en: {
     dashboard: "Dashboard",
@@ -24,8 +23,6 @@ export const translations = {
     barcode: "Barcode",
     category: "Category",
     description: "Description",
-    aiEnhance: "AI Enhance",
-    generating: "Generating...",
     actions: "Actions",
     cart: "Transaction Cart",
     subtotal: "Subtotal",
@@ -77,8 +74,6 @@ export const translations = {
     barcode: "บาร์โค้ด",
     category: "หมวดหมู่",
     description: "รายละเอียด",
-    aiEnhance: "ปรับแต่งด้วย AI",
-    generating: "กำลังสร้าง...",
     actions: "จัดการ",
     cart: "ตะกร้าสินค้า",
     subtotal: "ยอดรวม",
