@@ -8,6 +8,9 @@ export interface Product {
   description: string;
   category: string;
   imageUrl?: string;
+  createdByUserId?: string;
+  createdByUserName?: string;
+  createdAt?: string;
 }
 
 export interface CartItem extends Product {

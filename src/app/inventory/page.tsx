@@ -1,7 +1,9 @@
+
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useInventory, useLanguage } from '@/lib/store'
+import { useUser } from '@/firebase'
 import { Product } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -15,7 +17,8 @@ import {
   Image as ImageIcon,
   X,
   RefreshCw,
-  Loader2
+  Loader2,
+  User as UserIcon
 } from 'lucide-react'
 import { 
   Table, 
@@ -44,6 +47,7 @@ import Image from 'next/image'
 export default function InventoryPage() {
   const { products, addProduct, updateProduct, deleteProduct, isLoading } = useInventory()
   const { t } = useLanguage()
+  const { user } = useUser()
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -92,18 +96,14 @@ export default function InventoryPage() {
 
     const finalImageUrl = formData.imageUrl || `https://picsum.photos/seed/${formData.name || Date.now()}/400/300`
 
-    const productData = {
-      ...formData,
-      price: Number(formData.price),
-      stock: Number(formData.stock),
-      category: formData.category || 'ทั่วไป',
-      imageUrl: finalImageUrl
-    }
-
     if (editingProduct) {
       updateProduct({
         ...editingProduct,
-        ...productData
+        ...formData,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        category: formData.category || 'ทั่วไป',
+        imageUrl: finalImageUrl
       } as Product)
       toast({ title: t.completed, description: `แก้ไขข้อมูล ${formData.name} เรียบร้อย` })
     } else {
@@ -115,7 +115,10 @@ export default function InventoryPage() {
         barcode: formData.barcode!,
         category: formData.category || 'ทั่วไป',
         description: formData.description || '',
-        imageUrl: finalImageUrl
+        imageUrl: finalImageUrl,
+        createdByUserId: user?.uid || 'unknown',
+        createdByUserName: user?.displayName || user?.email?.split('@')[0] || 'Unknown Staff',
+        createdAt: new Date().toISOString()
       }
       addProduct(newProduct)
       toast({ title: t.completed, description: `เพิ่มสินค้า ${newProduct.name} เรียบร้อย` })
@@ -256,7 +259,7 @@ export default function InventoryPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="price">{t.price}</Label>
+                      <Label htmlFor="price">{t.price} (฿)</Label>
                       <Input 
                         id="price" 
                         type="number" 
@@ -375,15 +378,16 @@ export default function InventoryPage() {
               <TableHead>{t.name}</TableHead>
               <TableHead>{t.barcode}</TableHead>
               <TableHead>{t.category}</TableHead>
-              <TableHead>{t.price}</TableHead>
+              <TableHead>{t.price} (฿)</TableHead>
               <TableHead>{t.stock}</TableHead>
+              <TableHead>ผู้เพิ่มสินค้า</TableHead>
               <TableHead className="text-right">{t.actions}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground italic">
+                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground italic">
                   ไม่พบสินค้าในระบบ
                 </TableCell>
               </TableRow>
@@ -402,11 +406,17 @@ export default function InventoryPage() {
                   <TableCell>
                     <Badge variant="secondary">{product.category}</Badge>
                   </TableCell>
-                  <TableCell className="font-bold text-primary">${product.price.toFixed(2)}</TableCell>
+                  <TableCell className="font-bold text-primary">{product.price.toLocaleString()} ฿</TableCell>
                   <TableCell>
                     <span className={`font-medium ${product.stock < 10 ? 'text-destructive' : ''}`}>
                       {product.stock}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <UserIcon className="w-3 h-3" />
+                      {product.createdByUserName || '-'}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">

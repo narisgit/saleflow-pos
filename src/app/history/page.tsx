@@ -115,7 +115,7 @@ export default function HistoryPage() {
                       {order.cashierName}
                     </div>
                   </TableCell>
-                  <TableCell className="font-bold">${order.total.toFixed(2)}</TableCell>
+                  <TableCell className="font-bold">{order.total.toLocaleString()} ฿</TableCell>
                   <TableCell>
                     <Badge className="bg-green-100 text-green-700 border-none">{t.completed}</Badge>
                   </TableCell>
@@ -201,7 +201,7 @@ export default function HistoryPage() {
                 {selectedOrder.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between">
                     <span>{item.name} x{item.quantity}</span>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                    <span>{(item.price * item.quantity).toLocaleString()} ฿</span>
                   </div>
                 ))}
               </div>
@@ -211,11 +211,11 @@ export default function HistoryPage() {
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                  <span>{selectedOrder.subtotal.toLocaleString()} ฿</span>
                 </div>
                 <div className="flex justify-between font-bold text-base">
                   <span>{t.total}</span>
-                  <span>${selectedOrder.total.toFixed(2)}</span>
+                  <span>{selectedOrder.total.toLocaleString()} ฿</span>
                 </div>
               </div>
               

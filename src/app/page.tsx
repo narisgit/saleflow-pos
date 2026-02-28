@@ -21,10 +21,10 @@ export default function DashboardPage() {
   }))
 
   const stats = [
-    { title: t.totalRevenue, value: `$${totalSales.toFixed(2)}`, icon: DollarSign, color: "text-blue-600" },
-    { title: t.ordersCompleted, value: orders.length, icon: ShoppingCart, color: "text-green-600" },
-    { title: t.itemsSold, value: totalItemsSold, icon: TrendingUp, color: "text-purple-600" },
-    { title: t.lowStockItems, value: lowStockProducts, icon: Package, color: "text-orange-600" },
+    { title: t.totalRevenue, value: `${totalSales.toLocaleString()} ฿`, icon: DollarSign, color: "text-blue-600" },
+    { title: t.ordersCompleted, value: orders.length.toLocaleString(), icon: ShoppingCart, color: "text-green-600" },
+    { title: t.itemsSold, value: totalItemsSold.toLocaleString(), icon: TrendingUp, color: "text-purple-600" },
+    { title: t.lowStockItems, value: lowStockProducts.toLocaleString(), icon: Package, color: "text-orange-600" },
   ]
 
   return (
@@ -59,7 +59,7 @@ export default function DashboardPage() {
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                  <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `${value}`} />
                   <Tooltip 
                     cursor={{fill: '#f0f0f0'}}
                     contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}

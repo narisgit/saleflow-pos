@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { useInventory, useOrders, useLanguage } from '@/lib/store'
-import { useUser, useFirestore } from '@/firebase'
+import { useUser } from '@/firebase'
 import { Product, CartItem, Order } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -91,7 +91,7 @@ export default function POSPage() {
   }
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
-  const tax = subtotal * 0.08
+  const tax = subtotal * 0.07 // ภาษี 7%
   const total = subtotal + tax
 
   const finalizeOrder = () => {
@@ -191,7 +191,7 @@ export default function POSPage() {
                 <CardContent className="p-3">
                   <h3 className="font-semibold text-sm line-clamp-1">{product.name}</h3>
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-primary font-bold">${product.price.toFixed(2)}</p>
+                    <p className="text-primary font-bold">{product.price.toLocaleString()} ฿</p>
                     <p className="text-[10px] text-muted-foreground">{t.stock}: {product.stock}</p>
                   </div>
                 </CardContent>
@@ -227,7 +227,7 @@ export default function POSPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">{item.price.toLocaleString()} ฿</p>
                     <div className="flex items-center gap-2 mt-2">
                       <Button 
                         variant="outline" 
@@ -249,7 +249,7 @@ export default function POSPage() {
                     </div>
                   </div>
                   <div className="text-right flex flex-col justify-between items-end">
-                    <p className="font-bold text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-bold text-sm">{(item.price * item.quantity).toLocaleString()} ฿</p>
                     <Button 
                       variant="ghost" 
                       size="icon" 
@@ -269,15 +269,15 @@ export default function POSPage() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t.subtotal}</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>{subtotal.toLocaleString()} ฿</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{t.tax} (8%)</span>
-              <span>${tax.toFixed(2)}</span>
+              <span className="text-muted-foreground">{t.tax} (7%)</span>
+              <span>{tax.toLocaleString()} ฿</span>
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>{t.total}</span>
-              <span className="text-primary">${total.toFixed(2)}</span>
+              <span className="text-primary">{total.toLocaleString()} ฿</span>
             </div>
           </div>
 
