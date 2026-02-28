@@ -11,7 +11,6 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  Sparkles,
   Barcode,
   Camera,
   Image as ImageIcon,
@@ -36,7 +35,6 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { generateProductDescription } from '@/ai/flows/generate-product-description-flow'
 import { toast } from '@/hooks/use-toast'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -49,7 +47,6 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
   
   // Scanner State
   const [isScannerOpen, setIsScannerOpen] = useState(false)
@@ -125,35 +122,6 @@ export default function InventoryPage() {
     }
     setIsDialogOpen(false)
     resetForm()
-  }
-
-  const generateAI = async () => {
-    if (!formData.name) {
-      toast({ title: "กรุณาใส่ชื่อสินค้าก่อนใช้ AI", variant: "default" })
-      return
-    }
-    setIsGenerating(true)
-    try {
-      const result = await generateProductDescription({
-        productName: formData.name,
-        attributes: [formData.category || 'สินค้าสัตว์เลี้ยง', `ราคา ${formData.price} บาท`]
-      })
-      if (result && result.description) {
-        setFormData(prev => ({ ...prev, description: result.description }))
-        toast({ title: "สร้างคำบรรยายสำเร็จ!" })
-      } else {
-        throw new Error("AI ไม่สามารถสร้างข้อมูลได้")
-      }
-    } catch (e: any) {
-      console.error('AI Generation Error:', e)
-      toast({ 
-        title: "AI เกิดข้อผิดพลาด", 
-        description: e.message || "กรุณาลองใหม่อีกครั้ง",
-        variant: "destructive" 
-      })
-    } finally {
-      setIsGenerating(false)
-    }
   }
 
   const generateBarcode = () => {
@@ -329,19 +297,7 @@ export default function InventoryPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor="description">{t.description}</Label>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={generateAI} 
-                        disabled={isGenerating}
-                        className="text-primary hover:text-primary/80"
-                      >
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        {isGenerating ? "กำลังสร้าง..." : "ใช้ AI เขียนคำบรรยาย"}
-                      </Button>
-                    </div>
+                    <Label htmlFor="description">{t.description}</Label>
                     <Textarea 
                       id="description" 
                       className="h-32 text-sm leading-relaxed"
