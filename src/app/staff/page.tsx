@@ -13,7 +13,8 @@ import {
   UserCheck,
   Briefcase,
   Fingerprint,
-  Edit
+  Edit,
+  RefreshCw
 } from 'lucide-react'
 import { 
   Table, 
@@ -67,6 +68,11 @@ export default function StaffPage() {
     email: ''
   })
 
+  const generateSimpleId = () => {
+    const num = Math.floor(1000 + Math.random() * 9000);
+    setFormData(prev => ({ ...prev, id: `EMP-${num}` }));
+  }
+
   const resetForm = () => {
     setFormData({ id: '', name: '', role: 'Cashier', active: true, email: '' })
     setEditingStaff(null)
@@ -78,32 +84,38 @@ export default function StaffPage() {
       setFormData(staff)
     } else {
       resetForm()
+      // Generate a default short ID for new staff
+      const num = Math.floor(1000 + Math.random() * 9000);
+      setFormData(prev => ({ ...prev, id: `EMP-${num}` }));
     }
     setIsDialogOpen(true)
   }
 
   const handleSave = () => {
-    if (!formData.name) {
-      toast({ title: "ข้อผิดพลาด", description: "กรุณาระบุชื่อพนักงาน", variant: "destructive" })
+    if (!formData.name || !formData.id) {
+      toast({ title: "ข้อผิดพลาด", description: "กรุณาระบุชื่อและรหัสพนักงาน", variant: "destructive" })
       return
     }
 
-    const finalId = formData.id || Math.random().toString(36).substr(2, 9).toUpperCase();
-
     const staffData: Staff = {
-      id: finalId,
+      id: formData.id,
       name: formData.name!,
       role: (formData.role as any) || 'Cashier',
       active: true,
       email: formData.email || ''
     }
 
+    // If ID was changed, we need to handle it as a new entry in Firestore if we use ID as doc key
+    // In our store, addStaff uses setDocumentNonBlocking(doc(db, 'userProfiles', s.id), ...)
+    // So if editing and ID changed, it would create a duplicate. 
+    // For simplicity, we assume ID is unique and constant, or user creates new if ID changes.
+    
     addStaff(staffData)
     setIsDialogOpen(false)
     resetForm()
     toast({ 
       title: t.completed, 
-      description: editingStaff ? `แก้ไขข้อมูลพนักงาน ${staffData.name} เรียบร้อยแล้ว` : `เพิ่มพนักงาน ${staffData.name} เรียบร้อยแล้ว` 
+      description: editingStaff ? `บันทึกข้อมูล ${staffData.name} เรียบร้อยแล้ว` : `เพิ่มพนักงาน ${staffData.name} เรียบร้อยแล้ว` 
     })
   }
 
@@ -136,18 +148,26 @@ export default function StaffPage() {
             <div className="grid gap-6 py-4">
               <div className="space-y-2">
                 <Label htmlFor="staff-id">รหัสพนักงาน (ID)</Label>
-                <div className="relative">
-                  <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    id="staff-id" 
-                    placeholder="เช่น STAFF001"
-                    value={formData.id} 
-                    onChange={e => setFormData(f => ({ ...f, id: e.target.value }))}
-                    disabled={!!editingStaff}
-                    className="pl-10" 
-                  />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      id="staff-id" 
+                      placeholder="เช่น EMP-101"
+                      value={formData.id} 
+                      onChange={e => setFormData(f => ({ ...f, id: e.target.value.toUpperCase() }))}
+                      disabled={!!editingStaff}
+                      className="pl-10 font-mono" 
+                    />
+                  </div>
+                  {!editingStaff && (
+                    <Button variant="outline" size="icon" onClick={generateSimpleId} title="สุ่มรหัสใหม่">
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
-                {editingStaff && <p className="text-[10px] text-muted-foreground italic">รหัสพนักงานไม่สามารถแก้ไขได้</p>}
+                {!editingStaff && <p className="text-[10px] text-muted-foreground">สามารถกำหนดรหัสเองได้ หรือกดสุ่มรหัสสั้นๆ</p>}
+                {editingStaff && <p className="text-[10px] text-muted-foreground italic">รหัสพนักงานเดิม: {editingStaff.id}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">{t.name}</Label>
