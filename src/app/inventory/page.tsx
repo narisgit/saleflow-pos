@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
@@ -15,7 +14,8 @@ import {
   Camera,
   Image as ImageIcon,
   X,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react'
 import { 
   Table, 
@@ -42,7 +42,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images'
 import Image from 'next/image'
 
 export default function InventoryPage() {
-  const { products, addProduct, updateProduct, deleteProduct } = useInventory()
+  const { products, addProduct, updateProduct, deleteProduct, isLoading } = useInventory()
   const { t } = useLanguage()
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -86,7 +86,7 @@ export default function InventoryPage() {
 
   const handleSave = () => {
     if (!formData.name || formData.price === undefined || !formData.barcode) {
-      toast({ title: "ข้อผิดพลาด", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", variant: "destructive" })
+      toast({ title: "ข้อผิดพลาด", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (ชื่อ, ราคา, บาร์โค้ด)", variant: "destructive" })
       return
     }
 
@@ -108,7 +108,7 @@ export default function InventoryPage() {
       toast({ title: t.completed, description: `แก้ไขข้อมูล ${formData.name} เรียบร้อย` })
     } else {
       const newProduct: Product = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: '', // Will be assigned by Firestore
         name: formData.name!,
         price: Number(formData.price),
         stock: Number(formData.stock),
@@ -132,7 +132,6 @@ export default function InventoryPage() {
   const useDefaultImage = () => {
     const randomImg = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)]
     setFormData(prev => ({ ...prev, imageUrl: randomImg.imageUrl }))
-    toast({ title: "เปลี่ยนรูปภาพแล้ว", description: "ใช้รูปบรรจุภัณฑ์มาตรฐาน" })
   }
 
   // Camera Permission Logic
@@ -171,12 +170,20 @@ export default function InventoryPage() {
     toast({ title: "สแกนสำเร็จ", description: `รหัสที่พบ: ${scannedCode}` });
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary">{t.inventory}</h1>
-          <p className="text-muted-foreground">จัดการคลังสินค้าและรูปภาพบรรจุภัณฑ์</p>
+          <p className="text-muted-foreground">จัดการคลังสินค้าอาหารสัตว์และอุปกรณ์</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -213,7 +220,7 @@ export default function InventoryPage() {
                       <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm">
                         <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
                       </div>
-                      <p className="text-xs text-muted-foreground">ไม่มีรูปภาพแสดงผล<br/>กดปุ่มด้านล่างเพื่อเลือกรูปตัวอย่าง</p>
+                      <p className="text-xs text-muted-foreground">เลือกรูปตัวอย่างบรรจุภัณฑ์</p>
                       <Button variant="outline" size="sm" onClick={useDefaultImage} className="mt-2">
                         <Plus className="w-4 h-4 mr-2" />
                         ใช้รูปบรรจุภัณฑ์
@@ -287,7 +294,7 @@ export default function InventoryPage() {
                         onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))}
                         className="flex-1 font-mono"
                       />
-                      <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากกล้อง">
+                      <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากซองสินค้า">
                         <Camera className="w-4 h-4" />
                       </Button>
                       <Button variant="outline" size="icon" onClick={generateBarcode} title="สุ่มบาร์โค้ด">
@@ -300,8 +307,8 @@ export default function InventoryPage() {
                     <Label htmlFor="description">{t.description}</Label>
                     <Textarea 
                       id="description" 
-                      className="h-32 text-sm leading-relaxed"
-                      placeholder="เขียนคำอธิบายสินค้า..."
+                      className="h-24 text-sm leading-relaxed"
+                      placeholder="ข้อมูลเพิ่มเติมเกี่ยวกับสินค้า..."
                       value={formData.description}
                       onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
                     />
@@ -333,7 +340,7 @@ export default function InventoryPage() {
       <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>สแกนบาร์โค้ดจากสินค้า</DialogTitle>
+            <DialogTitle>สแกนบาร์โค้ดจากซองสินค้า</DialogTitle>
           </DialogHeader>
           <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex items-center justify-center">
             <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
@@ -351,7 +358,7 @@ export default function InventoryPage() {
             )}
           </div>
           <div className="text-center text-sm text-muted-foreground">
-            หันกล้องไปที่บาร์โค้ดบนบรรจุภัณฑ์สินค้า
+            หันกล้องไปที่บาร์โค้ดบนซองสินค้า
           </div>
           <DialogFooter className="gap-2">
             <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
@@ -377,7 +384,7 @@ export default function InventoryPage() {
             {filteredProducts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12 text-muted-foreground italic">
-                  ไม่พบสินค้าที่ตรงตามเงื่อนไข
+                  ไม่พบสินค้าในระบบ
                 </TableCell>
               </TableRow>
             ) : (
