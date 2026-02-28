@@ -119,16 +119,29 @@ export default function InventoryPage() {
   }
 
   const generateAI = async () => {
-    if (!formData.name) return
+    if (!formData.name) {
+      toast({ title: "Please enter product name first", variant: "default" })
+      return
+    }
     setIsGenerating(true)
     try {
       const result = await generateProductDescription({
         productName: formData.name,
         attributes: [formData.category || 'General', `$${formData.price}`]
       })
-      setFormData(prev => ({ ...prev, description: result.description }))
-    } catch (e) {
-      toast({ title: "Failed", variant: "destructive" })
+      if (result && result.description) {
+        setFormData(prev => ({ ...prev, description: result.description }))
+        toast({ title: "Description generated!" })
+      } else {
+        throw new Error("No description returned from AI")
+      }
+    } catch (e: any) {
+      console.error('AI Generation Error:', e)
+      toast({ 
+        title: "AI Generation Failed", 
+        description: e.message || "Please try again with a different name.",
+        variant: "destructive" 
+      })
     } finally {
       setIsGenerating(false)
     }

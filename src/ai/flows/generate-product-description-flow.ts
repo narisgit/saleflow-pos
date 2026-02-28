@@ -35,7 +35,27 @@ const generateProductDescriptionPrompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
   input: {schema: GenerateProductDescriptionInputSchema},
   output: {schema: GenerateProductDescriptionOutputSchema},
-  prompt: `You are an expert marketing copywriter. Your task is to create a concise and engaging product description based on the provided product name and its key attributes. The description should be compelling and highlight the product's benefits to attract customers.
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_HATE_SPEECH',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_NONE',
+      },
+    ],
+  },
+  prompt: `You are an expert marketing copywriter for a pet shop. Your task is to create a concise, engaging, and friendly product description in Thai (ภาษาไทย) based on the provided product name and its key attributes. The description should highlight the benefits and be very appealing to pet owners.
 
 Product Name: {{{productName}}}
 Key Attributes:
@@ -43,7 +63,7 @@ Key Attributes:
 - {{{this}}}
 {{/each}}
 
-Generate a product description:`,
+Please generate the description in Thai. Return only the JSON object with the "description" field.`,
 });
 
 const generateProductDescriptionFlow = ai.defineFlow(
@@ -53,7 +73,15 @@ const generateProductDescriptionFlow = ai.defineFlow(
     outputSchema: GenerateProductDescriptionOutputSchema,
   },
   async input => {
-    const {output} = await generateProductDescriptionPrompt(input);
-    return output!;
+    try {
+      const {output} = await generateProductDescriptionPrompt(input);
+      if (!output) {
+        throw new Error('AI failed to generate a description output.');
+      }
+      return output;
+    } catch (error) {
+      console.error('Error in generateProductDescriptionFlow:', error);
+      throw error;
+    }
   }
 );
