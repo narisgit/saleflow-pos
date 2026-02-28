@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/lib/store"
 import { ShieldCheck, Briefcase, UserCheck, BookOpen, Info, Package, ShoppingCart, History } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function ManualPage() {
   const { t } = useLanguage()
