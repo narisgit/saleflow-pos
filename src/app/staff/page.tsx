@@ -69,7 +69,7 @@ export default function StaffPage() {
   })
 
   const generateSimpleId = () => {
-    const num = Math.floor(1000 + Math.random() * 9000);
+    const num = Math.floor(100 + Math.random() * 900);
     setFormData(prev => ({ ...prev, id: `EMP-${num}` }));
   }
 
@@ -84,9 +84,7 @@ export default function StaffPage() {
       setFormData(staff)
     } else {
       resetForm()
-      // Generate a default short ID for new staff
-      const num = Math.floor(1000 + Math.random() * 9000);
-      setFormData(prev => ({ ...prev, id: `EMP-${num}` }));
+      generateSimpleId()
     }
     setIsDialogOpen(true)
   }
@@ -98,17 +96,17 @@ export default function StaffPage() {
     }
 
     const staffData: Staff = {
-      id: formData.id,
+      id: formData.id.trim().toUpperCase(),
       name: formData.name!,
       role: (formData.role as any) || 'Cashier',
       active: true,
       email: formData.email || ''
     }
 
-    // If ID was changed, we need to handle it as a new entry in Firestore if we use ID as doc key
-    // In our store, addStaff uses setDocumentNonBlocking(doc(db, 'userProfiles', s.id), ...)
-    // So if editing and ID changed, it would create a duplicate. 
-    // For simplicity, we assume ID is unique and constant, or user creates new if ID changes.
+    // แก้ไขปัญหา: หากมีการเปลี่ยน ID พนักงานเดิม ให้ลบ ID เก่าทิ้งก่อนบันทึก ID ใหม่
+    if (editingStaff && editingStaff.id !== staffData.id) {
+      deleteStaff(editingStaff.id);
+    }
     
     addStaff(staffData)
     setIsDialogOpen(false)
@@ -153,21 +151,17 @@ export default function StaffPage() {
                     <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input 
                       id="staff-id" 
-                      placeholder="เช่น EMP-101"
+                      placeholder="เช่น EMP-01"
                       value={formData.id} 
                       onChange={e => setFormData(f => ({ ...f, id: e.target.value.toUpperCase() }))}
-                      disabled={!!editingStaff}
                       className="pl-10 font-mono" 
                     />
                   </div>
-                  {!editingStaff && (
-                    <Button variant="outline" size="icon" onClick={generateSimpleId} title="สุ่มรหัสใหม่">
-                      <RefreshCw className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <Button variant="outline" size="icon" onClick={generateSimpleId} title="สุ่มรหัสใหม่">
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
                 </div>
-                {!editingStaff && <p className="text-[10px] text-muted-foreground">สามารถกำหนดรหัสเองได้ หรือกดสุ่มรหัสสั้นๆ</p>}
-                {editingStaff && <p className="text-[10px] text-muted-foreground italic">รหัสพนักงานเดิม: {editingStaff.id}</p>}
+                <p className="text-[10px] text-muted-foreground italic">คุณสามารถเปลี่ยนรหัสพนักงานได้ ระบบจะทำการย้ายข้อมูลให้โดยอัตโนมัติ</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">{t.name}</Label>
