@@ -173,6 +173,11 @@ export default function StaffPage() {
         </div>
       </div>
 
+      <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg flex items-center gap-3 text-orange-800 text-sm mb-4">
+        <Info className="w-5 h-5" />
+        <span>หากคุณเห็นเมนูนี้ แปลว่าคุณมีสิทธิ์ Admin (แก้ไขล่าสุด: ชื่อพนักงาน)</span>
+      </div>
+
       <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
         <Table>
           <TableHeader>
@@ -283,7 +288,7 @@ export default function StaffPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">ยืนยันการลบ</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">ยืนยันการลบ</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

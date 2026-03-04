@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useInventory, useLanguage } from '@/lib/store'
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { Product } from '@/lib/types'
@@ -18,8 +18,8 @@ import {
   X,
   RefreshCw,
   Loader2,
-  User as UserIcon,
-  Lock
+  Lock,
+  CheckCircle2
 } from 'lucide-react'
 import { 
   Table, 
@@ -138,37 +138,26 @@ export default function InventoryPage() {
     resetForm()
   }
 
-  const generateBarcode = () => {
-    const code = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString()
-    setFormData(prev => ({ ...prev, barcode: code }))
-  }
-
-  const useDefaultImage = () => {
-    const randomImg = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)]
-    setFormData(prev => ({ ...prev, imageUrl: randomImg.imageUrl }))
+  const requestCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      setHasCameraPermission(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setHasCameraPermission(false);
+      toast({
+        variant: 'destructive',
+        title: 'ไม่ได้รับอนุญาต',
+        description: 'กรุณาอนุญาตการเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์',
+      });
+    }
   }
 
   useEffect(() => {
-    if (isScannerOpen) {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings.',
-          });
-        }
-      };
-      getCameraPermission();
-    } else {
+    if (!isScannerOpen) {
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach(track => track.stop());
@@ -218,7 +207,7 @@ export default function InventoryPage() {
                       <>
                         <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <Button variant="secondary" size="sm" onClick={useDefaultImage} className="gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))} className="gap-2">
                             <RefreshCw className="w-4 h-4" />
                             สุ่มรูปใหม่
                           </Button>
@@ -233,7 +222,7 @@ export default function InventoryPage() {
                           <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
                         </div>
                         <p className="text-xs text-muted-foreground">เลือกรูปตัวอย่างบรรจุภัณฑ์</p>
-                        <Button variant="outline" size="sm" onClick={useDefaultImage} className="mt-2">
+                        <Button variant="outline" size="sm" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))} className="mt-2">
                           <Plus className="w-4 h-4 mr-2" />
                           ใช้รูปบรรจุภัณฑ์
                         </Button>
@@ -270,7 +259,7 @@ export default function InventoryPage() {
                       <div className="flex gap-2">
                         <Input id="barcode" value={formData.barcode} onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))} className="flex-1 font-mono" />
                         <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากซองสินค้า"><Camera className="w-4 h-4" /></Button>
-                        <Button variant="outline" size="icon" onClick={generateBarcode} title="สุ่มบาร์โค้ด"><Barcode className="w-4 h-4" /></Button>
+                        <Button variant="outline" size="icon" onClick={() => setFormData(prev => ({ ...prev, barcode: Math.floor(Math.random() * 9000000000000 + 1000000000000).toString() }))} title="สุ่มบาร์โค้ด"><Barcode className="w-4 h-4" /></Button>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -352,21 +341,29 @@ export default function InventoryPage() {
       <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>สแกนบาร์โค้ดสินค้า</DialogTitle></DialogHeader>
-          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex items-center justify-center">
-            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
-            <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
-            {!hasCameraPermission && hasCameraPermission !== null && (
-              <div className="absolute inset-0 bg-background/90 flex items-center justify-center p-6 text-center">
-                <Alert variant="destructive">
-                  <AlertTitle>เข้าถึงกล้องไม่ได้</AlertTitle>
-                  <AlertDescription>กรุณาอนุญาตการเข้าถึงกล้องในหน้าการตั้งค่าเบราว์เซอร์</AlertDescription>
-                </Alert>
+          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
+            {hasCameraPermission ? (
+              <>
+                <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
+                <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
+              </>
+            ) : (
+              <div className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Camera className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-white font-bold">ต้องการการเข้าถึงกล้อง</h3>
+                <p className="text-white/60 text-sm">เพื่อใช้ฟีเจอร์สแกนบาร์โค้ด กรุณากดปุ่มอนุญาตด้านล่าง</p>
+                <Button onClick={requestCamera} className="w-full bg-primary hover:bg-primary/90">
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  อนุญาตใช้งานกล้อง
+                </Button>
               </div>
             )}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
-            <Button onClick={simulateScan}>จำลองการสแกน</Button>
+            <Button onClick={simulateScan} variant="outline">จำลองการสแกน</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

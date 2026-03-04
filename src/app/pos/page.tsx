@@ -19,8 +19,7 @@ import {
   Scan,
   User as UserIcon,
   Loader2,
-  Camera,
-  Percent
+  Camera
 } from 'lucide-react'
 import { 
   Dialog, 
@@ -29,8 +28,6 @@ import {
   DialogTitle, 
   DialogFooter
 } from '@/components/ui/dialog'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Label } from '@/components/ui/label'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 
@@ -131,27 +128,26 @@ export default function POSPage() {
     toast({ title: t.orderCompleted, description: `${t.orderId}: ${newOrder.id}` })
   }
 
+  const requestCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      setHasCameraPermission(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setHasCameraPermission(false);
+      toast({
+        variant: 'destructive',
+        title: 'ไม่ได้รับอนุญาต',
+        description: 'กรุณาอนุญาตการเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์',
+      });
+    }
+  }
+
   useEffect(() => {
-    if (isScannerOpen) {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in settings.',
-          });
-        }
-      };
-      getCameraPermission();
-    } else {
+    if (!isScannerOpen) {
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach(track => track.stop());
@@ -278,21 +274,29 @@ export default function POSPage() {
       <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>สแกนบาร์โค้ดสินค้า</DialogTitle></DialogHeader>
-          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex items-center justify-center">
-            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
-            <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
-            {!hasCameraPermission && hasCameraPermission !== null && (
-              <div className="absolute inset-0 bg-background/90 flex items-center justify-center p-6 text-center">
-                <Alert variant="destructive">
-                  <AlertTitle>เข้าถึงกล้องไม่ได้</AlertTitle>
-                  <AlertDescription>กรุณาอนุญาตการเข้าถึงกล้องในหน้าการตั้งค่าเบราว์เซอร์</AlertDescription>
-                </Alert>
+          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
+            {hasCameraPermission ? (
+              <>
+                <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
+                <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
+              </>
+            ) : (
+              <div className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Camera className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-white font-bold">ต้องการการเข้าถึงกล้อง</h3>
+                <p className="text-white/60 text-sm">เพื่อใช้ฟีเจอร์สแกนบาร์โค้ด กรุณากดปุ่มอนุญาตด้านล่าง</p>
+                <Button onClick={requestCamera} className="w-full bg-primary hover:bg-primary/90">
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  อนุญาตใช้งานกล้อง
+                </Button>
               </div>
             )}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
-            <Button onClick={simulateScan}>จำลองการสแกน</Button>
+            <Button onClick={simulateScan} variant="outline">จำลองการสแกน</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
