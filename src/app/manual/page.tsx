@@ -22,7 +22,9 @@ import {
   Link as LinkIcon,
   AlertTriangle,
   FileX,
-  CreditCard
+  CreditCard,
+  Info,
+  Zap
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -82,21 +84,48 @@ export default function ManualPage() {
         </div>
       </div>
 
-      {/* Critical Warning about Blaze Plan */}
-      <Alert variant="destructive" className="bg-amber-50 border-amber-200">
-        <CreditCard className="h-5 w-5 text-amber-600" />
-        <AlertTitle className="text-amber-800 font-bold">ข้อมูลสำคัญ: ต้องใช้แผน Blaze (Pay-as-you-go)</AlertTitle>
-        <AlertDescription className="text-amber-700">
-          เนื่องจากระบบ App Hosting ต้องใช้ทรัพยากรเซิร์ฟเวอร์ในการรัน Next.js คุณจำเป็นต้องกด <b>"Upgrade project"</b> ใน Firebase Console เพื่อเปลี่ยนจากแผน Spark (ฟรี) เป็น <b>Blaze</b> ก่อน ถึงจะเริ่มสร้าง Backend และใช้งานระบบนี้ได้ครับ (ไม่ต้องกังวล หากใช้งานไม่เยอะมักจะอยู่ในโควต้าฟรีของ Google Cloud ครับ)
-        </AlertDescription>
-      </Alert>
+      {/* Blaze Plan Explanation */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-primary">
+            <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+            สรุปเรื่องแผนการใช้งาน (Blaze Plan)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm leading-relaxed">
+          <p>
+            <b>ทำไมต้องใช้แผน Blaze?</b>: เนื่องจาก SaleFlow เป็นแอป Next.js ที่มีการประมวลผลหลังบ้าน (Server-side) ระบบจึงต้องการเครื่องเซิร์ฟเวอร์ (Cloud Run) ในการรันแอป ซึ่ง Firebase จำกัดให้ใช้ได้เฉพาะในแผน Blaze เท่านั้น
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white p-3 rounded border border-primary/10">
+              <h4 className="font-bold mb-1 flex items-center gap-1 text-green-600">
+                <CheckCircle2 className="w-4 h-4" /> ข้อดี
+              </h4>
+              <ul className="list-disc list-inside text-xs space-y-1">
+                <li>มีโควต้าให้ใช้งานฟรีทุกเดือน (Free Tier)</li>
+                <li>ถ้าร้านขนาดเล็ก ใช้งานคนเดียว มักจะไม่เสียเงิน</li>
+                <li>ระบบจะลื่นไหลและรัน GenAI ได้สมบูรณ์</li>
+              </ul>
+            </div>
+            <div className="bg-white p-3 rounded border border-primary/10">
+              <h4 className="font-bold mb-1 flex items-center gap-1 text-blue-600">
+                <Info className="w-4 h-4" /> สิ่งที่ต้องเตรียม
+              </h4>
+              <ul className="list-disc list-inside text-xs space-y-1">
+                <li>ต้องผูกบัตรเครดิต หรือ บัตรเดบิตเพื่อยืนยันตัวตน</li>
+                <li>อัปเกรดใน Firebase Console ปุ่ม "Upgrade" มุมซ้ายล่าง</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Critical Warning about index.html */}
       <Alert variant="destructive" className="bg-red-50 border-red-200">
         <AlertTriangle className="h-5 w-5" />
         <AlertTitle className="text-red-800 font-bold">คำเตือน: ห้ามใช้ไฟล์ index.html ในโฟลเดอร์ public</AlertTitle>
         <AlertDescription className="text-red-700">
-          แอปพลิเคชันนี้ทำงานด้วยระบบ Next.js ซึ่ง **ไม่ต้องการ** ไฟล์ index.html หากคุณสร้างไฟล์นี้ไว้ในโฟลเดอร์ public จะทำให้ระบบ Deployment ขัดข้องและหาหน้าเว็บไม่เจอ (404 Error) กรุณาลบไฟล์ดังกล่าวออกหากมีอยู่ครับ
+          กรุณาลบไฟล์ <code className="bg-red-100 px-1 rounded">public/index.html</code> ออกทันทีหากมีอยู่ แอป Next.js จะสร้างหน้าเว็บให้เองโดยอัตโนมัติ การมีไฟล์นี้จะทำให้ระบบ Deployment ขัดข้อง (404 Error)
         </AlertDescription>
       </Alert>
 
@@ -118,11 +147,11 @@ export default function ManualPage() {
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-3">
                 <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
-                <p>กด <b>"Upgrade project"</b> ในหน้า App Hosting เพื่อเปลี่ยนเป็นแผน <b>Blaze</b></p>
+                <p>กด <b>"Upgrade project"</b> ใน Firebase Console เปลี่ยนเป็นแผน <b>Blaze</b> (Pay-as-you-go)</p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
-                <p>กดปุ่ม <b>"Get started"</b> เพื่อเริ่มสร้าง Backend ชุดแรกของคุณ</p>
+                <p>ไปที่เมนู <b>Build &gt; App Hosting</b> แล้วกด <b>"Get started"</b></p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
@@ -130,7 +159,7 @@ export default function ManualPage() {
               </div>
               <div className="flex items-start gap-3">
                 <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">4</span>
-                <p>เมื่อ Deploy สำเร็จ ระบบจะแสดง <b>URL</b> ใหม่มาให้ (เช่น https://saleflow-pos-xxx.a.run.app)</p>
+                <p>เมื่อ Deploy สำเร็จ ระบบจะแสดง <b>URL</b> ใหม่มาให้ที่หน้า App Hosting (ไม่ใช่ลิงก์ .web.app เดิม)</p>
               </div>
             </div>
           </div>
