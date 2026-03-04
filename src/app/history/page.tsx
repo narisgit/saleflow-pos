@@ -11,7 +11,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Search, Eye, FileText, User, Printer, Trash2, Lock } from 'lucide-react'
+import { Search, Eye, FileText, User, Printer, Trash2, Lock, ShieldAlert } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useState, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -48,10 +48,11 @@ export default function HistoryPage() {
   const [showReceipt, setShowReceipt] = useState(false)
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null)
 
-  // เช็คสิทธิ์ผู้ใช้งาน
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
-  const { data: currentUserProfile } = useDoc(currentUserRef)
-  const canDeleteHistory = currentUserProfile?.role === 'Admin'
+  const { data: profile, isLoading: isProfileLoading } = useDoc(currentUserRef)
+  
+  const canViewHistory = profile?.role === 'Admin' || profile?.role === 'Manager'
+  const isAdmin = profile?.role === 'Admin'
 
   const filteredOrders = useMemo(() => {
     return orders.filter(o => 
@@ -67,24 +68,41 @@ export default function HistoryPage() {
 
   const confirmDelete = () => {
     if (orderToDelete) {
-      if (!canDeleteHistory) {
+      if (!isAdmin) {
         toast({ title: "ถูกปฏิเสธ", description: "เฉพาะ Admin เท่านั้นที่ลบประวัติได้", variant: "destructive" })
         return
       }
       deleteOrder(orderToDelete)
-      toast({
-        title: "Order Deleted",
-        description: `Order ${orderToDelete} has been removed.`,
-      })
+      toast({ title: "Order Deleted", description: `Order ${orderToDelete} has been removed.` })
       setOrderToDelete(null)
     }
+  }
+
+  if (isProfileLoading) {
+    return (
+      <div className="h-full flex items-center justify-center p-20">
+        <ShieldAlert className="w-8 h-8 animate-pulse text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!canViewHistory) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <div className="bg-destructive/10 p-6 rounded-full">
+          <Lock className="w-12 h-12 text-destructive" />
+        </div>
+        <h2 className="text-2xl font-bold">Access Denied</h2>
+        <p className="text-muted-foreground">คุณไม่มีสิทธิ์เข้าถึงหน้านี้ เฉพาะผู้จัดการเท่านั้น</p>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-headline font-bold text-primary">{t.history}</h1>
-        <p className="text-muted-foreground">{t.history} Log</p>
+        <p className="text-muted-foreground">รายการสั่งซื้อย้อนหลังทั้งหมด</p>
       </div>
 
       <div className="relative">
@@ -120,9 +138,7 @@ export default function HistoryPage() {
               filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-sm font-bold text-primary">{order.id}</TableCell>
-                  <TableCell>
-                    {new Date(order.date).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <User className="w-3 h-3 text-muted-foreground" />
@@ -135,30 +151,15 @@ export default function HistoryPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => { setSelectedOrder(order); setShowReceipt(true); }}
-                      >
+                      <Button variant="ghost" size="sm" className="gap-2" onClick={() => { setSelectedOrder(order); setShowReceipt(true); }}>
                         <FileText className="w-4 h-4" />
                         {t.receipt}
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => { setSelectedOrder(order); setShowReceipt(false); }}
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setSelectedOrder(order); setShowReceipt(false); }}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      {canDeleteHistory && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                          onClick={() => setOrderToDelete(order.id)}
-                        >
+                      {isAdmin && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => setOrderToDelete(order.id)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
@@ -171,38 +172,27 @@ export default function HistoryPage() {
         </Table>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!orderToDelete} onOpenChange={(open) => !open && setOrderToDelete(null)}>
+      <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && setOrderToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete order <strong>{orderToDelete}</strong> from the history.
-            </AlertDialogDescription>
+            <AlertDialogTitle>ยืนยันการลบประวัติ?</AlertDialogTitle>
+            <AlertDialogDescription>การกระทำนี้ไม่สามารถย้อนกลับได้</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">ลบรายการ</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Order Detail / Receipt Dialog */}
-      <Dialog open={!!selectedOrder} onOpenChange={(open) => { if(!open) setSelectedOrder(null); }}>
+      <Dialog open={!!selectedOrder} onOpenChange={(o) => !o && setSelectedOrder(null)}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>{showReceipt ? t.receipt : "Order Details"}</span>
-              {showReceipt && (
-                <Button variant="outline" size="icon" onClick={handlePrint} className="h-8 w-8">
-                  <Printer className="w-4 h-4" />
-                </Button>
-              )}
+              {showReceipt && <Button variant="outline" size="icon" onClick={handlePrint} className="h-8 w-8"><Printer className="w-4 h-4" /></Button>}
             </DialogTitle>
           </DialogHeader>
-          
           {selectedOrder && (
             <div className={`space-y-4 ${showReceipt ? 'font-mono text-sm' : ''}`}>
               <div className="text-center space-y-1">
@@ -210,9 +200,7 @@ export default function HistoryPage() {
                 <p className="text-xs text-muted-foreground">Order ID: {selectedOrder.id}</p>
                 <p className="text-xs text-muted-foreground">{new Date(selectedOrder.date).toLocaleString()}</p>
               </div>
-              
               <Separator />
-              
               <div className="space-y-2">
                 {selectedOrder.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between">
@@ -221,28 +209,19 @@ export default function HistoryPage() {
                   </div>
                 ))}
               </div>
-              
               <Separator />
-              
               <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>{selectedOrder.subtotal.toLocaleString()} ฿</span>
-                </div>
                 <div className="flex justify-between font-bold text-base">
                   <span>{t.total}</span>
                   <span>{selectedOrder.total.toLocaleString()} ฿</span>
                 </div>
               </div>
-              
               <Separator />
-              
               <div className="text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t.cashier}:</span>
                   <span>{selectedOrder.cashierName}</span>
                 </div>
-                <p className="text-center mt-4 italic">Thank you for your business!</p>
               </div>
             </div>
           )}

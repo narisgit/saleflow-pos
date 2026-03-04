@@ -19,7 +19,8 @@ import {
   Key,
   Info,
   UserPlus,
-  Hash
+  Hash,
+  ShieldAlert
 } from 'lucide-react'
 import { 
   Table, 
@@ -72,9 +73,9 @@ export default function StaffPage() {
   const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null)
 
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
-  const { data: currentUserProfile } = useDoc(currentUserRef)
+  const { data: profile, isLoading: isProfileLoading } = useDoc(currentUserRef)
   
-  const isAdmin = currentUserProfile?.role === 'Admin'
+  const isAdmin = profile?.role === 'Admin'
 
   const [formData, setFormData] = useState<Partial<Staff>>({
     id: '',
@@ -102,9 +103,7 @@ export default function StaffPage() {
       toast({ title: "ข้อผิดพลาด", description: "ข้อมูลไม่ครบถ้วน", variant: "destructive" })
       return
     }
-
     const finalCode = formData.employeeCode || `EMP-${formData.id.slice(-3).toUpperCase()}`
-
     const staffData: Staff = {
       id: formData.id,
       employeeCode: finalCode,
@@ -113,14 +112,10 @@ export default function StaffPage() {
       active: true,
       email: formData.email || ''
     }
-    
     addStaff(staffData)
     setIsDialogOpen(false)
     resetForm()
-    toast({ 
-      title: t.completed, 
-      description: `บันทึกข้อมูล ${staffData.name} เรียบร้อยแล้ว`
-    })
+    toast({ title: t.completed, description: `บันทึกข้อมูล ${staffData.name} เรียบร้อยแล้ว` })
   }
 
   const handleClaimAdmin = () => {
@@ -134,10 +129,7 @@ export default function StaffPage() {
       email: user.email || ''
     }
     addStaff(adminData)
-    toast({ 
-      title: "กู้คืนสิทธิ์สำเร็จ", 
-      description: "คุณได้รับสิทธิ์ Admin เรียบร้อยแล้ว",
-    })
+    toast({ title: "กู้คืนสิทธิ์สำเร็จ", description: "คุณได้รับสิทธิ์ Admin เรียบร้อยแล้ว" })
   }
 
   const confirmDelete = () => {
@@ -148,32 +140,38 @@ export default function StaffPage() {
     }
   }
 
+  if (isProfileLoading) {
+    return (
+      <div className="h-full flex items-center justify-center p-20">
+        <ShieldAlert className="w-8 h-8 animate-pulse text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <div className="bg-destructive/10 p-6 rounded-full">
+          <Lock className="w-12 h-12 text-destructive" />
+        </div>
+        <h2 className="text-2xl font-bold">Access Denied</h2>
+        <p className="text-muted-foreground">เฉพาะ Admin เท่านั้นที่สามารถจัดการข้อมูลพนักงานได้</p>
+        <Button onClick={handleClaimAdmin} variant="outline" className="mt-4">
+          <Key className="w-4 h-4 mr-2" />
+          กู้คืนสิทธิ์ Admin
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary">{t.staff}</h1>
-          <p className="text-muted-foreground">จัดการข้อมูลและสิทธิ์เข้าใช้งานของพนักงาน</p>
-        </div>
-        <div className="flex gap-2">
-          {!isAdmin && (
-            <Button onClick={handleClaimAdmin} variant="outline" className="border-primary text-primary hover:bg-primary/10">
-              <Key className="w-4 h-4 mr-2" />
-              กู้คืนสิทธิ์ Admin
-            </Button>
-          )}
+          <p className="text-muted-foreground">จัดการสิทธิ์เข้าใช้งานสำหรับ Admin</p>
         </div>
       </div>
-
-      {!isAdmin && (
-        <Alert className="bg-orange-50 border-orange-200">
-          <Info className="h-4 w-4 text-orange-600" />
-          <AlertTitle className="text-orange-700">คำแนะนำ</AlertTitle>
-          <AlertDescription className="text-orange-600">
-            คุณสามารถดูข้อมูลพนักงานได้เท่านั้น หากต้องการแก้ไขสิทธิ์ กรุณาติดต่อ Admin ของระบบ
-          </AlertDescription>
-        </Alert>
-      )}
 
       <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
         <Table>
@@ -206,12 +204,9 @@ export default function StaffPage() {
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                         {staff.name.charAt(0)}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {staff.name}
-                          {staff.id === user?.uid && <span className="ml-2 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full uppercase">Me</span>}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{staff.email || '-'}</span>
+                      <div className="flex flex-col text-sm">
+                        <span className="font-medium">{staff.name}</span>
+                        <span className="text-xs text-muted-foreground">{staff.email}</span>
                       </div>
                     </div>
                   </TableCell>
@@ -224,34 +219,18 @@ export default function StaffPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none">
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none text-[10px]">
                       Active
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      {(isAdmin || staff.id === user?.uid) && (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 hover:text-primary"
-                            onClick={() => handleOpenDialog(staff)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                            disabled={staff.id === user?.uid && staffList.length > 1}
-                            onClick={() => setStaffToDelete(staff)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                      {!isAdmin && staff.id !== user?.uid && <Lock className="w-4 h-4 text-muted-foreground mr-3" />}
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenDialog(staff)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" disabled={staff.id === user?.uid} onClick={() => setStaffToDelete(staff)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -269,43 +248,24 @@ export default function StaffPage() {
           <div className="grid gap-6 py-4">
             <div className="space-y-2">
               <Label htmlFor="employeeCode">{t.employeeCode}</Label>
-              <div className="relative">
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  id="employeeCode" 
-                  placeholder="เช่น EMP-001"
-                  className="pl-10 font-mono"
-                  value={formData.employeeCode} 
-                  onChange={e => setFormData(f => ({ ...f, employeeCode: e.target.value }))}
-                />
-              </div>
+              <Input id="employeeCode" className="font-mono" value={formData.employeeCode} onChange={e => setFormData(f => ({ ...f, employeeCode: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="name">{t.staffName}</Label>
-              <Input 
-                id="name" 
-                value={formData.name} 
-                onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
-              />
+              <Input id="name" value={formData.name} onChange={e => setFormData(f => ({ ...f, name: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">{t.role}</Label>
-              <div className="flex flex-col gap-2">
-                <Select 
-                  value={formData.role} 
-                  onValueChange={v => setFormData(f => ({ ...f, role: v as any }))}
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue placeholder="เลือกตำแหน่ง" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Admin">Admin (ผู้ดูแลระบบ)</SelectItem>
-                    <SelectItem value="Manager">Manager (ผู้จัดการ)</SelectItem>
-                    <SelectItem value="Cashier">Cashier (พนักงานขาย)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-[10px] text-muted-foreground">เฉพาะ Admin เท่านั้นที่เปลี่ยนตำแหน่งตนเองหรือผู้อื่นได้ในฐานข้อมูลจริง</p>
-              </div>
+              <Select value={formData.role} onValueChange={v => setFormData(f => ({ ...f, role: v as any }))}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="เลือกตำแหน่ง" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Admin">Admin (ผู้ดูแลระบบ)</SelectItem>
+                  <SelectItem value="Manager">Manager (ผู้จัดการ)</SelectItem>
+                  <SelectItem value="Cashier">Cashier (พนักงานขาย)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
@@ -315,19 +275,15 @@ export default function StaffPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!staffToDelete} onOpenChange={(open) => !open && setStaffToDelete(null)}>
+      <AlertDialog open={!!staffToDelete} onOpenChange={(o) => !o && setStaffToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ยืนยันการลบพนักงาน?</AlertDialogTitle>
-            <AlertDialogDescription>
-              คุณต้องการนำพนักงานชื่อ <strong>{staffToDelete?.name}</strong> ออกจากระบบใช่หรือไม่?
-            </AlertDialogDescription>
+            <AlertDialogDescription>คุณต้องการลบ <strong>{staffToDelete?.name}</strong> ใช่หรือไม่?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              ยืนยันการลบ
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">ยืนยันการลบ</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

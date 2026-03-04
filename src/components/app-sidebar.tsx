@@ -15,9 +15,8 @@ import {
   LogOut,
   User as UserIcon,
   BookOpen,
-  CircleCheck,
-  Clock,
-  RefreshCw
+  RefreshCw,
+  Lock
 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -33,7 +32,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/lib/store"
-import { useAuth, useUser } from "@/firebase"
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { signOut } from "firebase/auth"
 import {
   DropdownMenu,
@@ -44,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { doc } from "firebase/firestore"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -51,22 +51,30 @@ export function AppSidebar() {
   const { lang, toggleLanguage, t } = useLanguage()
   const auth = useAuth()
   const { user } = useUser()
+  const db = useFirestore()
 
-  // ใช้เวลาปัจจุบันรวมวินาทีเพื่อระบุเวอร์ชันให้ชัดเจน
+  const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
+  const { data: profile } = useDoc(currentUserRef)
+  const role = profile?.role || 'Cashier'
+
   const buildTime = new Date().toLocaleTimeString('th-TH', { 
     hour: '2-digit', 
     minute: '2-digit',
     second: '2-digit'
   })
 
-  const navItems = [
-    { name: t.dashboard, href: "/", icon: LayoutDashboard },
-    { name: t.pos, href: "/pos", icon: ShoppingCart },
-    { name: t.inventory, href: "/inventory", icon: Package },
-    { name: t.history, href: "/history", icon: History },
-    { name: t.staff, href: "/staff", icon: Users },
-    { name: "คู่มือการใช้งาน", href: "/manual", icon: BookOpen },
-  ]
+  // กรองเมนูตามตำแหน่ง
+  const navItems = React.useMemo(() => {
+    const items = [
+      { name: t.dashboard, href: "/", icon: LayoutDashboard, roles: ['Admin', 'Manager'] },
+      { name: t.pos, href: "/pos", icon: ShoppingCart, roles: ['Admin', 'Manager', 'Cashier'] },
+      { name: t.inventory, href: "/inventory", icon: Package, roles: ['Admin', 'Manager', 'Cashier'] },
+      { name: t.history, href: "/history", icon: History, roles: ['Admin', 'Manager'] },
+      { name: t.staff, href: "/staff", icon: Users, roles: ['Admin'] },
+      { name: "คู่มือการใช้งาน", href: "/manual", icon: BookOpen, roles: ['Admin', 'Manager', 'Cashier'] },
+    ]
+    return items.filter(item => item.roles.includes(role))
+  }, [role, t])
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -121,7 +129,7 @@ export function AppSidebar() {
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                     <span className="truncate font-semibold">{user?.displayName || user?.email?.split('@')[0]}</span>
-                    <span className="truncate text-xs text-muted-foreground">Staff Member</span>
+                    <span className="truncate text-xs text-muted-foreground">{role}</span>
                   </div>
                   <ChevronRight className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
                 </SidebarMenuButton>
@@ -169,12 +177,6 @@ export function AppSidebar() {
             <SidebarMenuButton tooltip={lang === 'en' ? 'สลับเป็นภาษาไทย' : 'Switch to English'} onClick={toggleLanguage}>
               <Languages className="w-5 h-5" />
               <span>{lang === 'en' ? 'English' : 'ไทย'}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-             <SidebarMenuButton tooltip={t.settings}>
-              <Settings className="w-5 h-5" />
-              <span>{t.settings}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
