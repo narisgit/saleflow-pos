@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/lib/store"
-import { ShieldCheck, Briefcase, UserCheck, BookOpen, Info, Package, ShoppingCart, History } from "lucide-react"
+import { ShieldCheck, Briefcase, UserCheck, BookOpen, Info, Package, ShoppingCart, History, CheckCircle2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function ManualPage() {
@@ -49,8 +49,14 @@ export default function ManualPage() {
     }
   ]
 
+  const testSteps = [
+    { title: "1. เพิ่มสินค้า", description: "ไปที่หน้า 'คลังสินค้า' เพิ่มสินค้าใหม่ ระบุชื่อ ราคา และบาร์โค้ด ระบบจะบันทึกว่าคุณเป็นผู้เพิ่ม", icon: Package },
+    { title: "2. ทดสอบขาย", description: "ไปที่หน้า 'จุดขาย' เลือกสินค้าที่เพิ่งเพิ่มลงตะกร้า แล้วกดชำระเงิน ระบบจะหักสต็อกอัตโนมัติ", icon: ShoppingCart },
+    { title: "3. ตรวจสอบ Dashboard", description: "กลับไปหน้า 'แผงควบคุม' ยอดขายจะถูกรวมเข้ากับกราฟแท่งรายเดือนของเดือนปัจจุบันทันที", icon: CheckCircle2 }
+  ]
+
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto pb-12">
       <div className="flex items-center gap-3">
         <div className="bg-primary p-2 rounded-lg">
           <BookOpen className="w-6 h-6 text-primary-foreground" />
@@ -84,6 +90,28 @@ export default function ManualPage() {
           </Card>
         ))}
       </div>
+
+      <Card className="border-none shadow-lg bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-primary" />
+            Test Case: การตรวจสอบความเชื่อมโยงของระบบ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testSteps.map((step, i) => (
+              <div key={i} className="flex flex-col items-center text-center space-y-3">
+                <div className="bg-white p-3 rounded-full shadow-sm border">
+                  <step.icon className="w-6 h-6 text-primary" />
+                </div>
+                <h4 className="font-bold text-sm">{step.title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-none shadow-lg">
         <CardHeader>
@@ -120,7 +148,7 @@ export default function ManualPage() {
               </div>
               <div>
                 <h4 className="font-bold">ประวัติการขาย</h4>
-                <p className="text-sm text-muted-foreground">ตรวจสอบยอดขายย้อนหลังและพิมพ์ใบเสร็จ (Receipt) หากมีการขายผิดพลาด Admin สามารถกดลบรายการทิ้งได้</p>
+                <p className="text-sm text-muted-foreground">ตรวจสอบยอดขายย้อนหลังและพิมพ์ใบเสร็จ (Receipt) กราฟในหน้า Dashboard จะรวมยอดขายตามเดือนที่ทำรายการ</p>
               </div>
             </div>
             <Alert className="bg-blue-50 border-blue-200">

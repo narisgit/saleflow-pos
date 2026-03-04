@@ -1,11 +1,11 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useInventory, useOrders, useLanguage } from "@/lib/store"
-import { TrendingUp, Package, ShoppingCart, DollarSign, Loader2 } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { TrendingUp, Package, ShoppingCart, DollarSign, Loader2, Calendar } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 export default function DashboardPage() {
   const { products } = useInventory()
@@ -13,19 +13,34 @@ export default function DashboardPage() {
   const { t } = useLanguage()
   const [mounted, setMounted] = useState(false)
 
-  // ป้องกันปัญหา Hydration mismatch สำหรับกราฟและวันที่
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const totalSales = orders.reduce((acc, order) => acc + order.total, 0)
-  const totalItemsSold = orders.reduce((acc, order) => acc + order.items.reduce((iAcc, item) => iAcc + item.quantity, 0), 0)
-  const lowStockProducts = products.filter(p => p.stock < 10).length
+  const totalSales = useMemo(() => orders.reduce((acc, order) => acc + order.total, 0), [orders])
+  const totalItemsSold = useMemo(() => orders.reduce((acc, order) => acc + order.items.reduce((iAcc, item) => iAcc + item.quantity, 0), 0), [orders])
+  const lowStockProducts = useMemo(() => products.filter(p => p.stock < 10).length, [products])
 
-  const chartData = orders.slice(0, 7).reverse().map(order => ({
-    name: new Date(order.date).toLocaleDateString('th-TH', { weekday: 'short' }),
-    total: order.total
-  }))
+  // คำนวณยอดขายรายเดือนสำหรับปีปัจจุบัน
+  const monthlyChartData = useMemo(() => {
+    const monthNames = [
+      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
+      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ]
+    
+    const currentYear = new Date().getFullYear()
+    const data = monthNames.map(name => ({ name, total: 0 }))
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.date)
+      if (orderDate.getFullYear() === currentYear) {
+        const monthIndex = orderDate.getMonth()
+        data[monthIndex].total += order.total
+      }
+    })
+
+    return data
+  }, [orders])
 
   const stats = [
     { title: t.totalRevenue, value: `${totalSales.toLocaleString()} ฿`, icon: DollarSign, color: "text-blue-600" },
@@ -44,9 +59,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold text-primary">{t.dashboard}</h1>
-        <p className="text-muted-foreground">SaleFlow POS - ระบบจัดการร้านอาหารสัตว์</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold text-primary">{t.dashboard}</h1>
+          <p className="text-muted-foreground">ภาพรวมยอดขายรายเดือน ปี {new Date().getFullYear() + 543}</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border shadow-sm">
+          <Calendar className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium">สรุปผลแบบเรียลไทม์</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -66,20 +87,38 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-none shadow-sm">
           <CardHeader>
-            <CardTitle>{t.recentActivity}</CardTitle>
+            <CardTitle>ยอดขายรวมแยกตามเดือน (฿)</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            {chartData.length > 0 ? (
+          <CardContent className="h-[350px]">
+            {orders.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
+                <BarChart data={monthlyChartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `${value}`} />
-                  <Tooltip 
-                    cursor={{fill: '#f0f0f0'}}
-                    contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fontSize: 12}}
                   />
-                  <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tickFormatter={(value) => `${value.toLocaleString()}`}
+                    tick={{fontSize: 12}}
+                  />
+                  <Tooltip 
+                    cursor={{fill: '#f8fafc'}}
+                    contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                    formatter={(value: number) => [`${value.toLocaleString()} ฿`, 'ยอดขาย']}
+                  />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                    {monthlyChartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={index === new Date().getMonth() ? 'hsl(var(--primary))' : '#cbd5e1'} 
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -90,26 +129,29 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm">
+        <Card className="border-none shadow-sm flex flex-col">
           <CardHeader>
-            <CardTitle>{t.lowStockAlert}</CardTitle>
+            <CardTitle className="text-orange-600 flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              {t.lowStockAlert}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             <div className="space-y-4">
               {products.filter(p => p.stock < 10).length > 0 ? (
-                products.filter(p => p.stock < 10).slice(0, 5).map(p => (
-                  <div key={p.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.category}</p>
+                products.filter(p => p.stock < 10).sort((a,b) => a.stock - b.stock).slice(0, 8).map(p => (
+                  <div key={p.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                    <div className="min-w-0 pr-2">
+                      <p className="font-medium text-sm truncate">{p.name}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">{p.category}</p>
                     </div>
-                    <span className="text-xs font-bold px-2 py-1 rounded bg-orange-100 text-orange-700">
+                    <span className={`text-xs font-bold px-2 py-1 rounded shrink-0 ${p.stock <= 2 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
                       {p.stock} {t.units}
                     </span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-muted-foreground text-sm">
+                <div className="h-full flex items-center justify-center text-center py-8 text-muted-foreground text-sm italic">
                   สต็อกสินค้าอยู่ในระดับปกติ
                 </div>
               )}
