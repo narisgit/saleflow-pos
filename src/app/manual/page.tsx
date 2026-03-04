@@ -11,11 +11,10 @@ import {
   Users,
   Info,
   CheckCircle2,
-  AlertCircle,
-  ExternalLink
+  Smartphone,
+  PlusSquare
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
 
 export default function ManualPage() {
   const { t } = useLanguage()
@@ -28,86 +27,61 @@ export default function ManualPage() {
         </div>
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary">คู่มือการใช้งาน SaleFlow POS</h1>
-          <p className="text-muted-foreground">คำแนะนำสำหรับการเริ่มใช้งานระบบหลังจาก Deploy สำเร็จ</p>
+          <p className="text-muted-foreground">คำแนะนำสำหรับพนักงานร้านในการเริ่มใช้งานระบบ</p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-none shadow-sm bg-accent/5">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Smartphone className="w-5 h-5 text-accent" />
+            <CardTitle className="text-lg">การใช้งานบนมือถือ</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-3">
+            <p>เพื่อให้ใช้งานได้สะดวกเหมือนแอปจริง แนะนำให้เพิ่มไว้ที่หน้าจอโฮม:</p>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+              <li><b>iPhone:</b> เปิด Safari {'>'} กดปุ่ม Share {'>'} เลือก "Add to Home Screen"</li>
+              <li><b>Android:</b> เปิด Chrome {'>'} กดจุด 3 จุด {'>'} เลือก "Install app"</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Users className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">1. จัดการพนักงาน</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            <p>เพิ่มรายชื่อพนักงานที่เมนู <b>"จัดการพนักงาน"</b> เพื่อใช้ระบุชื่อผู้ขายในใบเสร็จและตรวจสอบประวัติการขายย้อนหลังได้ถูกต้อง</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">2. จัดการสต็อกสินค้า</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            <p>เพิ่มสินค้าที่เมนู <b>"คลังสินค้า"</b> สามารถใช้กล้องมือถือสแกนบาร์โค้ดจากซองสินค้าได้ทันที ระบบจะช่วยเตือนเมื่อสินค้าใกล้หมด</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <ShoppingCart className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">3. การขายสินค้า (POS)</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            <p>ที่หน้า <b>"จุดขาย"</b> ให้เลือกสินค้าหรือสแกนบาร์โค้ด ตรวจสอบยอดเงิน และกดชำระเงิน ระบบจะตัดสต็อกและบันทึกยอดขายให้อัตโนมัติ</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Alert className="bg-green-50 border-green-200">
         <CheckCircle2 className="h-5 w-5 text-green-600" />
-        <AlertTitle className="text-green-700 font-bold">ระบบของคุณออนไลน์แล้ว!</AlertTitle>
+        <AlertTitle className="text-green-700 font-bold">ข้อมูลปลอดภัยบนระบบ Cloud</AlertTitle>
         <AlertDescription className="text-green-800">
-          ตอนนี้คุณสามารถเข้าใช้งานผ่านมือถือหรือแท็บเล็ตได้จากทุกที่ทั่วโลกผ่าน URL ของคุณ
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Step 1: Staff */}
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">1. ตั้งค่าพนักงาน</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-2">
-            <p>ไปที่เมนู <b>"จัดการพนักงาน"</b> เพื่อสร้างรายชื่อผู้ที่สามารถขายสินค้าได้ ข้อมูลนี้จะถูกนำไปใช้ในใบเสร็จและประวัติการขาย</p>
-          </CardContent>
-        </Card>
-
-        {/* Step 2: Inventory */}
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Package className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">2. เพิ่มสินค้าในคลัง</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-2">
-            <p>เพิ่มรายการสินค้าของคุณในเมนู <b>"คลังสินค้า"</b> คุณสามารถใช้กล้องมือถือสแกนบาร์โค้ดจากซองสินค้าได้โดยตรงเพื่อความรวดเร็ว</p>
-          </CardContent>
-        </Card>
-
-        {/* Step 3: POS */}
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">3. เริ่มการขาย</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-2">
-            <p>ใช้หน้า <b>"จุดขาย (POS)"</b> เพื่อเลือกสินค้าและชำระเงิน ระบบจะตัดสต็อกสินค้าในคลังให้อัตโนมัติทันที</p>
-          </CardContent>
-        </Card>
-
-        {/* Step 4: Reports */}
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <History className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">4. ตรวจสอบรายงาน</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-2">
-            <p>ดูยอดรวมรายวัน/รายเดือนที่หน้า <b>"แผงควบคุม"</b> และตรวจสอบรายละเอียดใบเสร็จย้อนหลังได้ที่หน้า <b>"ประวัติการสั่งซื้อ"</b></p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="bg-muted/50 p-6 rounded-xl space-y-4 border">
-        <h3 className="font-bold flex items-center gap-2">
-          <Info className="w-5 h-5 text-blue-600" />
-          การอัปเดตระบบในอนาคต
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          เมื่อคุณทำการแก้ไขโค้ดใน Firebase Studio และกด <b>Push</b> ขึ้น GitHub ระบบจะทำการอัปเดตหน้าเว็บจริงให้คุณโดยอัตโนมัติผ่าน GitHub Actions
-        </p>
-        <div className="flex gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="gap-2">
-              <ExternalLink className="w-4 h-4" /> ดูสถานะที่ GitHub
-            </a>
-          </Button>
-        </div>
-      </div>
-
-      <Alert variant="destructive" className="bg-red-50">
-        <AlertCircle className="h-5 w-5" />
-        <AlertTitle>ข้อควรระวัง</AlertTitle>
-        <AlertDescription>
-          ระบบนี้รันบน Firebase Hosting แผน Spark (ฟรี) ซึ่งมีการจำกัดปริมาณข้อมูลต่อเดือน หากคุณมีการใช้งานที่สูงมาก กรุณาตรวจสอบสถานะโควต้าใน Firebase Console
+          ข้อมูลยอดขายและสต็อกทั้งหมดถูกเก็บไว้บน Firebase ของ Google คุณสามารถเข้าดูรายงานได้จากมือถือทุกเครื่องตลอด 24 ชั่วโมง
         </AlertDescription>
       </Alert>
     </div>
