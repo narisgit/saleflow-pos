@@ -16,17 +16,26 @@ import {
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 
 export function useLanguage() {
-  const [lang, setLang] = useState<Language>('en');
+  // ตั้งค่าเริ่มต้นเป็น 'th' (ภาษาไทย) ทันที
+  const [lang, setLang] = useState<Language>('th');
 
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('saleflow_lang') as Language : 'en';
-    if (stored) setLang(stored);
+    // ตรวจสอบว่าเคยเลือกภาษาอื่นไว้หรือไม่จาก localStorage
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('saleflow_lang') as Language : 'th';
+    if (stored && (stored === 'en' || stored === 'th')) {
+      setLang(stored);
+    } else {
+      // หากไม่มีการบันทึก ให้ใช้ภาษาไทยเป็นค่าเริ่มต้นและบันทึกลง localStorage
+      localStorage.setItem('saleflow_lang', 'th');
+    }
   }, []);
 
   const toggleLanguage = () => {
     const newLang = lang === 'en' ? 'th' : 'en';
     setLang(newLang);
-    if (typeof window !== 'undefined') localStorage.setItem('saleflow_lang', newLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('saleflow_lang', newLang);
+    }
   };
 
   const t = translations[lang];
