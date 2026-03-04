@@ -122,7 +122,7 @@ export default function ManualPage() {
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
-              <p>ไปที่ Firebase Console เมนู <b>Build > App Hosting</b></p>
+              <p>ไปที่ Firebase Console เมนู <b>Build &gt; App Hosting</b></p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
@@ -153,7 +153,7 @@ export default function ManualPage() {
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
-              <p>เมนู <b>Build (สร้าง) > Firestore Database</b></p>
+              <p>เมนู <b>Build (สร้าง) &gt; Firestore Database</b></p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
