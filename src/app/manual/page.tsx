@@ -18,9 +18,12 @@ import {
   Download,
   MonitorSmartphone,
   MousePointer2,
-  KeyRound
+  KeyRound,
+  Database,
+  ExternalLink
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 export default function ManualPage() {
   const { t } = useLanguage()
@@ -100,6 +103,39 @@ export default function ManualPage() {
           <p className="text-muted-foreground">SaleFlow POS สำหรับร้านอาหารสัตว์</p>
         </div>
       </div>
+
+      {/* ส่วนการจัดการข้อมูลหลังบ้าน */}
+      <Card className="border-none shadow-lg bg-blue-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-700">
+            <Database className="w-5 h-5" />
+            การจัดการข้อมูลหลังบ้าน (Backend Database)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-blue-800 text-sm space-y-4">
+          <p>ข้อมูลทั้งหมดของร้านถูกจัดเก็บไว้อย่างปลอดภัยบน <b>Firebase Cloud Firestore</b> คุณสามารถเข้าไปจัดการข้อมูลดิบได้ที่:</p>
+          <div className="bg-white p-4 rounded-lg border border-blue-100 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
+              <p>เข้าไปที่ <b><a href="https://console.firebase.google.com/" target="_blank" className="underline font-bold">Firebase Console</a></b> และเลือกโปรเจกต์ของคุณ</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
+              <p>ที่แถบเมนูด้านซ้าย คลิกที่เมนู <b>"Build"</b> (หรือ "สร้าง")</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
+              <p>คุณจะพบเมนูย่อยชื่อ <b>"Firestore Database"</b> เมื่อคลิกเข้าไปจะเห็นข้อมูลสินค้า (products) และยอดขาย (orders) ทั้งหมดครับ</p>
+            </div>
+          </div>
+          <Button variant="outline" className="text-blue-700 border-blue-300 hover:bg-blue-100" asChild>
+            <a href="https://console.firebase.google.com/" target="_blank">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              ไปยัง Firebase Console
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
         <CardHeader>
