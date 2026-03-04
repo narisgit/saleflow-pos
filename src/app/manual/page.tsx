@@ -58,8 +58,8 @@ export default function ManualPage() {
                 <p className="font-semibold mt-4">วิธีที่ 2: ผ่านการตั้งค่า Chrome</p>
                 <ol className="list-decimal list-inside text-muted-foreground space-y-1 ml-2">
                   <li>กด <b>จุด 3 จุด</b> มุมขวาบนของ Chrome</li>
-                  <li>เลือก <b>Settings (การตั้งค่า)</b> {' > '} <b>Site settings</b></li>
-                  <li>เลือก <b>Camera</b> {' > '} ค้นหาลิงก์ของร้านในรายการ "Blocked"</li>
+                  <li>เลือก <b>Settings (การตั้งค่า)</b> {'>'} <b>Site settings</b></li>
+                  <li>เลือก <b>Camera</b> {'>'} ค้นหาลิงก์ของร้านในรายการ "Blocked"</li>
                   <li>กดเลือกชื่อเว็บแล้วกด <b>"Allow" (อนุญาต)</b></li>
                 </ol>
               </div>
@@ -97,8 +97,8 @@ export default function ManualPage() {
           <CardContent className="text-sm space-y-3">
             <p>เพื่อให้ใช้งานได้สะดวกเหมือนแอปจริง แนะนำให้เพิ่มไว้ที่หน้าจอโฮม:</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-              <li><b>iPhone:</b> เปิด Safari {' > '} กดปุ่ม Share {' > '} เลือก "Add to Home Screen"</li>
-              <li><b>Android:</b> เปิด Chrome {' > '} กดจุด 3 จุด {' > '} เลือก "Install app" หรือ "Add to Home screen"</li>
+              <li><b>iPhone:</b> เปิด Safari {'>'} กดปุ่ม Share {'>'} เลือก "Add to Home Screen"</li>
+              <li><b>Android:</b> เปิด Chrome {'>'} กดจุด 3 จุด {'>'} เลือก "Install app" หรือ "Add to Home screen"</li>
             </ul>
           </CardContent>
         </Card>

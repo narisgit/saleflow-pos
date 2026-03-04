@@ -104,6 +104,13 @@ export default function InventoryPage() {
     };
   }, [isScannerOpen, hasScannerPermission]);
 
+  // Auto-request permission when scanner opens
+  useEffect(() => {
+    if (isScannerOpen && hasScannerPermission === null) {
+      requestScannerCamera();
+    }
+  }, [isScannerOpen]);
+
   // Product Photo Capture Effect
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -328,12 +335,6 @@ export default function InventoryPage() {
                       onChange={handleFileChange}
                     />
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))}>
-                      <RefreshCw className="w-3 h-3 mr-1" />
-                      ใช้รูปตัวอย่าง
-                    </Button>
-                  </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-4">
@@ -363,10 +364,6 @@ export default function InventoryPage() {
                         <Button variant="outline" size="icon" onClick={() => setFormData(prev => ({ ...prev, barcode: Math.floor(Math.random() * 9000000000000 + 1000000000000).toString() }))} title="สุ่มบาร์โค้ด"><Barcode className="w-4 h-4" /></Button>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">{t.description}</Label>
-                      <Textarea id="description" className="h-24 text-sm leading-relaxed" placeholder="ข้อมูลเพิ่มเติมเกี่ยวกับสินค้า..." value={formData.description} onChange={e => setFormData(f => ({ ...f, description: e.target.value }))} />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -383,13 +380,6 @@ export default function InventoryPage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input placeholder="ค้นหาตามชื่อสินค้า, หมวดหมู่ หรือบาร์โค้ด..." className="pl-10 h-12 shadow-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
-
-      {!canManageInventory && (
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 text-blue-800 text-sm">
-          <Lock className="w-5 h-5" />
-          <span>คุณอยู่ในฐานะ {currentUserProfile?.role || 'พนักงาน'} คุณสามารถดูคลังสินค้าได้เท่านั้น</span>
-        </div>
-      )}
 
       <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
         <Table>
