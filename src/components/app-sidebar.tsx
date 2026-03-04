@@ -16,7 +16,8 @@ import {
   User as UserIcon,
   BookOpen,
   CircleCheck,
-  Clock
+  Clock,
+  RefreshCw
 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -70,6 +71,10 @@ export function AppSidebar() {
   const handleLogout = async () => {
     await signOut(auth)
     router.push("/login")
+  }
+
+  const handleForceRefresh = () => {
+    window.location.reload();
   }
 
   if (pathname === "/login") return null
@@ -145,10 +150,17 @@ export function AppSidebar() {
           </SidebarMenuItem>
           
           <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
-            <div className="px-3 py-2 bg-orange-100 rounded-lg border border-orange-300 flex items-center justify-between animate-pulse">
+            <div 
+              className="px-3 py-2 bg-orange-500 rounded-lg border border-orange-600 flex items-center justify-between cursor-pointer hover:bg-orange-600 transition-colors"
+              onClick={handleForceRefresh}
+              title="Click to force refresh"
+            >
               <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-orange-600" />
-                <span className="text-[10px] text-orange-700 font-bold">Build: {buildTime}</span>
+                <RefreshCw className="w-3 h-3 text-white animate-spin-slow" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-white font-bold leading-tight">Version: {buildTime}</span>
+                  <span className="text-[8px] text-white/80 leading-tight">Tap to reload</span>
+                </div>
               </div>
             </div>
           </SidebarMenuItem>

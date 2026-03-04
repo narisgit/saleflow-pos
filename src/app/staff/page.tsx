@@ -165,13 +165,15 @@ export default function StaffPage() {
         </div>
       </div>
 
-      <Alert className="bg-orange-50 border-orange-200">
-        <Info className="h-4 w-4 text-orange-600" />
-        <AlertTitle className="text-orange-700">ตรวจสอบความถูกต้อง</AlertTitle>
-        <AlertDescription className="text-orange-600 font-bold underline">
-          หากคุณยังเห็นคำว่า "ชื่อสินค้า" ในตารางด้านล่าง แปลว่าหน้าเว็บของคุณยังไม่อัปเดต กรุณาปิดแท็บแล้วเปิดใหม่ครับ
-        </AlertDescription>
-      </Alert>
+      {!isAdmin && (
+        <Alert className="bg-orange-50 border-orange-200">
+          <Info className="h-4 w-4 text-orange-600" />
+          <AlertTitle className="text-orange-700">คำแนะนำ</AlertTitle>
+          <AlertDescription className="text-orange-600">
+            คุณสามารถดูข้อมูลพนักงานได้เท่านั้น หากต้องการแก้ไขสิทธิ์ กรุณาติดต่อ Admin ของระบบ
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
         <Table>
