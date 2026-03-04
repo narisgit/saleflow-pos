@@ -18,7 +18,8 @@ import {
   Database,
   ExternalLink,
   Cloud,
-  Globe
+  Globe,
+  Link as LinkIcon
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -101,43 +102,37 @@ export default function ManualPage() {
         </div>
       </div>
 
-      {/* Deployment Section */}
+      {/* Deployment & URL Guide */}
       <Card className="border-none shadow-lg bg-green-50 border-green-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-700">
-            <Cloud className="w-5 h-5" />
-            การนำไปใช้งานจริง (Firebase App Hosting)
+            <LinkIcon className="w-5 h-5" />
+            วิธีหา URL ใช้งานจริง (Firebase App Hosting)
           </CardTitle>
         </CardHeader>
         <CardContent className="text-green-800 text-sm space-y-4">
           <div className="bg-white p-4 rounded-lg border border-green-100 space-y-4">
             <h4 className="font-bold text-base flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              ทำไมถึงเข้าลิงก์ .web.app แล้วหาเพจไม่เจอ?
+              ทำไมถึงเข้าลิงก์ .web.app เดิมไม่ได้?
             </h4>
-            <p className="text-sm">URL เดิมที่ลงท้ายด้วย <code>.web.app</code> เป็นของระบบ Static Hosting แบบเก่า <b>ไม่รองรับ Next.js</b> ครับ</p>
-            <p className="text-sm font-bold">วิธีที่ถูกต้องในการดู URL ใช้งานจริง:</p>
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>ไปที่ Firebase Console เมนู <b>Build &gt; App Hosting</b></li>
-              <li>คลิกเลือก Backend ที่คุณสร้างไว้ (เชื่อมกับ GitHub)</li>
-              <li>มองหาหัวข้อ <b>Domains</b> หรือ <b>URL</b> ในหน้านั้น คุณจะได้ลิงก์ใหม่สำหรับใช้งานจริงครับ</li>
-            </ol>
+            <p className="text-sm">แอปนี้เป็น <b>Next.js</b> ซึ่งต้องการการรันแบบ Server (SSR) ลิงก์เดิมที่เป็นแบบ Static จะหาไฟล์ไม่เจอครับ คุณต้องใช้ลิงก์จาก <b>App Hosting</b> เท่านั้น</p>
+            
+            <div className="space-y-2 pt-2 border-t">
+              <p className="font-bold">ขั้นตอนการหา URL ตัวจริง:</p>
+              <ol className="list-decimal pl-5 space-y-3">
+                <li>ไปที่ <b><a href="https://console.firebase.google.com/" target="_blank" className="underline font-bold">Firebase Console</a></b></li>
+                <li>เมนูซ้ายมือ เลือก <b>Build (สร้าง) &gt; App Hosting</b></li>
+                <li>หากคุณสร้าง Backend ไว้แล้ว (เชื่อมกับ GitHub) ให้คลิกที่ชื่อโปรเจกต์นั้น</li>
+                <li>มองหาหัวข้อ <b>"Domains"</b> หรือ <b>"URL"</b> ในหน้า Dashboard คุณจะเห็นลิงก์ที่ Firebase สร้างให้ (มักจะเป็นชื่อโปรเจกต์ตามด้วยตัวอักษรสุ่ม)</li>
+                <li>คัดลอกลิงก์นั้นส่งให้พนักงานใช้งานได้ทันทีครับ!</li>
+              </ol>
+            </div>
           </div>
           
-          <div className="space-y-3">
-            <p>ขั้นตอนการ Deploy ใหม่ (ถ้ายังไม่มี Backend):</p>
-            <div className="flex items-start gap-3">
-              <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
-              <p>นำโค้ดขึ้น <b>GitHub</b></p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
-              <p>ใน Firebase Console เลือก <b>Build &gt; App Hosting</b></p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
-              <p>กด <b>Create a backend</b> เชื่อม GitHub และรอระบบ Build จนเสร็จ</p>
-            </div>
+          <div className="bg-green-100/50 p-3 rounded-lg flex items-start gap-2 italic">
+            <Cloud className="w-4 h-4 mt-0.5" />
+            <p className="text-xs">หมายเหตุ: หากคุณยังไม่เคยสร้าง Backend ใน App Hosting ให้กด <b>"Get started"</b> และเชื่อมต่อกับ GitHub Repository ของคุณก่อนนะครับ</p>
           </div>
         </CardContent>
       </Card>
