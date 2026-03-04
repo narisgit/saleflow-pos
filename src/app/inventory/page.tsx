@@ -58,12 +58,10 @@ export default function InventoryPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   
-  // States for live camera capture (Product Image)
   const [isCaptureMode, setIsCaptureMode] = useState(false)
   const captureVideoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Scanner states (for barcode)
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [hasScannerPermission, setHasScannerPermission] = useState<boolean | null>(null)
   const scannerVideoRef = useRef<HTMLVideoElement>(null)
@@ -82,7 +80,6 @@ export default function InventoryPage() {
     imageUrl: ''
   })
 
-  // Barcode Scanner Effect
   useEffect(() => {
     let stream: MediaStream | null = null;
     async function startScanner() {
@@ -106,7 +103,6 @@ export default function InventoryPage() {
     };
   }, [isScannerOpen, hasScannerPermission]);
 
-  // Product Photo Capture Effect
   useEffect(() => {
     let stream: MediaStream | null = null;
     async function startCapture() {
@@ -145,7 +141,7 @@ export default function InventoryPage() {
   const handleOpenDialog = (product?: Product) => {
     if (!canManageInventory) {
       toast({ title: "ถูกปฏิเสธ", description: "เฉพาะ Admin/Manager เท่านั้นที่จัดการสต็อกได้", variant: "destructive" })
-      return
+      return;
     }
     if (product) {
       setEditingProduct(product)
@@ -238,7 +234,6 @@ export default function InventoryPage() {
   }
 
   const simulateScan = () => {
-    // เลือกสินค้าที่มีอยู่แล้วมาสุ่มเลข หรือสุ่มเลขใหม่ที่ดูเหมือนบาร์โค้ดจริง
     const scannedCode = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
     setFormData(prev => ({ ...prev, barcode: scannedCode }));
     setIsScannerOpen(false);
@@ -434,9 +429,9 @@ export default function InventoryPage() {
           <div className="space-y-4">
             <Alert className="bg-amber-50 border-amber-200">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="text-amber-800 text-xs">คำชี้แจง</AlertTitle>
+              <AlertTitle className="text-amber-800 text-xs">คำชี้แจงระบบสแกน</AlertTitle>
               <AlertDescription className="text-amber-700 text-[10px]">
-                ขณะนี้ตัวแอปแสดงภาพจากกล้องเพื่อเล็งเท่านั้น ระบบถอดรหัส (Barcode Decoder) อยู่ระหว่างการพัฒนาบนเว็บแผนฟรี <b>กรุณาใช้ปุ่มจำลองด้านล่างเพื่อสุ่มรหัสแทนครับ</b>
+                ขณะนี้ตัวแอปแสดงภาพจากกล้องเพื่อใช้เล็งเท่านั้น ระบบถอดรหัสบาร์โค้ดอัตโนมัติยังไม่เปิดใช้งานบนแผนฟรี <b>กรุณาใช้ปุ่มจำลองด้านล่างเพื่อสุ่มรหัสแทนครับ</b>
               </AlertDescription>
             </Alert>
             <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
