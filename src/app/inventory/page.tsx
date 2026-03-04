@@ -20,8 +20,7 @@ import {
   Loader2,
   Lock,
   CheckCircle2,
-  Upload,
-  Zap
+  Upload
 } from 'lucide-react'
 import { 
   Table, 
@@ -57,14 +56,14 @@ export default function InventoryPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   
-  // States for live camera capture
+  // States for live camera capture (Product Image)
   const [isCaptureMode, setIsCaptureMode] = useState(false)
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
   const captureVideoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Scanner states (for barcode)
   const [isScannerOpen, setIsScannerOpen] = useState(false)
+  const [hasScannerPermission, setHasScannerPermission] = useState<boolean | null>(null)
   const scannerVideoRef = useRef<HTMLVideoElement>(null)
 
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
@@ -81,6 +80,54 @@ export default function InventoryPage() {
     imageUrl: ''
   })
 
+  // Barcode Scanner Effect
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    async function startScanner() {
+      if (isScannerOpen && hasScannerPermission) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          if (scannerVideoRef.current) {
+            scannerVideoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Scanner access error:', error);
+          setHasScannerPermission(false);
+        }
+      }
+    }
+    startScanner();
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [isScannerOpen, hasScannerPermission]);
+
+  // Product Photo Capture Effect
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    async function startCapture() {
+      if (isCaptureMode) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          if (captureVideoRef.current) {
+            captureVideoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Camera access error:', error);
+          setIsCaptureMode(false);
+        }
+      }
+    }
+    startCapture();
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [isCaptureMode]);
+
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase()) || 
     (p.category && p.category.toLowerCase().includes(search.toLowerCase())) ||
@@ -90,7 +137,7 @@ export default function InventoryPage() {
   const resetForm = () => {
     setFormData({ name: '', price: 0, stock: 0, barcode: '', category: '', description: '', imageUrl: '' })
     setEditingProduct(null)
-    stopCapture()
+    setIsCaptureMode(false)
   }
 
   const handleOpenDialog = (product?: Product) => {
@@ -110,10 +157,6 @@ export default function InventoryPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { 
-        toast({ title: "ไฟล์ใหญ่เกินไป", description: "กรุณาเลือกรูปภาพที่มีขนาดไม่เกิน 2MB", variant: "destructive" })
-        return
-      }
       const reader = new FileReader()
       reader.onloadend = () => {
         setFormData(f => ({ ...f, imageUrl: reader.result as string }))
@@ -161,34 +204,6 @@ export default function InventoryPage() {
     resetForm()
   }
 
-  const startCapture = async () => {
-    setIsCaptureMode(true)
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      setHasCameraPermission(true)
-      if (captureVideoRef.current) {
-        captureVideoRef.current.srcObject = stream
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error)
-      setHasCameraPermission(false)
-      setIsCaptureMode(false)
-      toast({
-        variant: 'destructive',
-        title: 'ไม่ได้รับอนุญาต',
-        description: 'กรุณาอนุญาตการเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์',
-      })
-    }
-  }
-
-  const stopCapture = () => {
-    if (captureVideoRef.current && captureVideoRef.current.srcObject) {
-      const tracks = (captureVideoRef.current.srcObject as MediaStream).getTracks()
-      tracks.forEach(track => track.stop())
-    }
-    setIsCaptureMode(false)
-  }
-
   const takePhoto = () => {
     if (captureVideoRef.current) {
       const canvas = document.createElement('canvas')
@@ -199,23 +214,19 @@ export default function InventoryPage() {
         ctx.drawImage(captureVideoRef.current, 0, 0)
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
         setFormData(f => ({ ...f, imageUrl: dataUrl }))
-        stopCapture()
+        setIsCaptureMode(false)
         toast({ title: "บันทึกรูปสำเร็จ" })
       }
     }
   }
 
-  // Barcode Scanner logic
   const requestScannerCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      setHasCameraPermission(true);
-      if (scannerVideoRef.current) {
-        scannerVideoRef.current.srcObject = stream;
-      }
+      await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      setHasScannerPermission(true);
     } catch (error) {
       console.error('Error accessing camera:', error);
-      setHasCameraPermission(false);
+      setHasScannerPermission(false);
       toast({
         variant: 'destructive',
         title: 'ไม่ได้รับอนุญาต',
@@ -223,15 +234,6 @@ export default function InventoryPage() {
       });
     }
   }
-
-  useEffect(() => {
-    if (!isScannerOpen) {
-      if (scannerVideoRef.current && scannerVideoRef.current.srcObject) {
-        const tracks = (scannerVideoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach(track => track.stop());
-      }
-    }
-  }, [isScannerOpen]);
 
   const simulateScan = () => {
     const scannedCode = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
@@ -278,7 +280,7 @@ export default function InventoryPage() {
                           <Button size="sm" onClick={takePhoto} className="rounded-full h-12 w-12 p-0 bg-white hover:bg-white/90 text-primary">
                             <CheckCircle2 className="w-8 h-8" />
                           </Button>
-                          <Button size="sm" variant="destructive" onClick={stopCapture} className="rounded-full h-12 w-12 p-0">
+                          <Button size="sm" variant="destructive" onClick={() => setIsCaptureMode(false)} className="rounded-full h-12 w-12 p-0">
                             <X className="w-6 h-6" />
                           </Button>
                         </div>
@@ -291,7 +293,7 @@ export default function InventoryPage() {
                             <Upload className="w-4 h-4" />
                             เลือกไฟล์
                           </Button>
-                          <Button variant="secondary" size="sm" onClick={startCapture} className="gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => setIsCaptureMode(true)} className="gap-2">
                             <Camera className="w-4 h-4" />
                             ถ่ายใหม่
                           </Button>
@@ -307,7 +309,7 @@ export default function InventoryPage() {
                         </div>
                         <p className="text-xs text-muted-foreground">ถ่ายรูป หรือเลือกจากคลังภาพ</p>
                         <div className="flex flex-col gap-2">
-                          <Button variant="default" size="sm" onClick={startCapture} className="gap-2">
+                          <Button variant="default" size="sm" onClick={() => setIsCaptureMode(true)} className="gap-2">
                             <Camera className="w-4 h-4" />
                             ถ่ายรูปด้วยกล้อง
                           </Button>
@@ -356,7 +358,7 @@ export default function InventoryPage() {
                     <div className="space-y-2">
                       <Label htmlFor="barcode">{t.barcode}</Label>
                       <div className="flex gap-2">
-                        <Input id="barcode" value={formData.barcode} onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))} className="flex-1 font-mono" />
+                        <Input id="barcode" value={formData.barcode} onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))} className="font-mono" />
                         <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากซองสินค้า"><Camera className="w-4 h-4" /></Button>
                         <Button variant="outline" size="icon" onClick={() => setFormData(prev => ({ ...prev, barcode: Math.floor(Math.random() * 9000000000000 + 1000000000000).toString() }))} title="สุ่มบาร์โค้ด"><Barcode className="w-4 h-4" /></Button>
                       </div>
@@ -441,7 +443,7 @@ export default function InventoryPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>สแกนบาร์โค้ดสินค้า</DialogTitle></DialogHeader>
           <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
-            {hasCameraPermission ? (
+            {hasScannerPermission ? (
               <>
                 <video ref={scannerVideoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
                 <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
