@@ -103,8 +103,8 @@ export default function InventoryPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 1024 * 1024) { // Limit 1MB for base64 storage
-        toast({ title: "ไฟล์ใหญ่เกินไป", description: "กรุณาเลือกรูปภาพที่มีขนาดไม่เกิน 1MB", variant: "destructive" })
+      if (file.size > 2 * 1024 * 1024) { 
+        toast({ title: "ไฟล์ใหญ่เกินไป", description: "กรุณาเลือกรูปภาพที่มีขนาดไม่เกิน 2MB", variant: "destructive" })
         return
       }
       const reader = new FileReader()
@@ -240,17 +240,18 @@ export default function InventoryPage() {
                         <p className="text-xs text-muted-foreground">ถ่ายรูป หรือเลือกจากคลังภาพ</p>
                         <Button variant="default" size="sm" onClick={() => fileInputRef.current?.click()} className="mt-2 gap-2">
                           <Camera className="w-4 h-4" />
-                          ถ่ายรูป/เลือกรูป
+                          ถ่ายรูป / เลือกรูป
                         </Button>
-                        <input 
-                          type="file" 
-                          ref={fileInputRef} 
-                          className="hidden" 
-                          accept="image/*" 
-                          onChange={handleFileChange}
-                        />
                       </div>
                     )}
+                    {/* Hidden input moved inside the same container for better trigger reliability */}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFileChange}
+                    />
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))}>
