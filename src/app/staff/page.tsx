@@ -189,7 +189,7 @@ export default function StaffPage() {
           <TableBody>
             {staffList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic">
+                <TableCell colSpan(5) className="text-center py-12 text-muted-foreground italic">
                   ยังไม่มีพนักงานสมัครสมาชิกเข้ามาในระบบ
                 </TableCell>
               </TableRow>
