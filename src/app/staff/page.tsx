@@ -189,7 +189,7 @@ export default function StaffPage() {
           <TableBody>
             {staffList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan(5) className="text-center py-12 text-muted-foreground italic">
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic">
                   ยังไม่มีพนักงานสมัครสมาชิกเข้ามาในระบบ
                 </TableCell>
               </TableRow>
@@ -290,19 +290,22 @@ export default function StaffPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">{t.role}</Label>
-              <Select 
-                value={formData.role} 
-                onValueChange={v => setFormData(f => ({ ...f, role: v as any }))}
-              >
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="เลือกตำแหน่ง" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Admin">Admin (ผู้ดูแลระบบ)</SelectItem>
-                  <SelectItem value="Manager">Manager (ผู้จัดการ)</SelectItem>
-                  <SelectItem value="Cashier">Cashier (พนักงานขาย)</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-2">
+                <Select 
+                  value={formData.role} 
+                  onValueChange={v => setFormData(f => ({ ...f, role: v as any }))}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="เลือกตำแหน่ง" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Admin">Admin (ผู้ดูแลระบบ)</SelectItem>
+                    <SelectItem value="Manager">Manager (ผู้จัดการ)</SelectItem>
+                    <SelectItem value="Cashier">Cashier (พนักงานขาย)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">เฉพาะ Admin เท่านั้นที่เปลี่ยนตำแหน่งตนเองหรือผู้อื่นได้ในฐานข้อมูลจริง</p>
+              </div>
             </div>
           </div>
           <DialogFooter>
