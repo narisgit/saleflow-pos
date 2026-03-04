@@ -103,7 +103,6 @@ export default function StaffPage() {
       email: formData.email || ''
     }
 
-    // แก้ไขปัญหา: หากมีการเปลี่ยน ID พนักงานเดิม ให้ลบ ID เก่าทิ้งก่อนบันทึก ID ใหม่
     if (editingStaff && editingStaff.id !== staffData.id) {
       deleteStaff(editingStaff.id);
     }
@@ -164,7 +163,7 @@ export default function StaffPage() {
                 <p className="text-[10px] text-muted-foreground italic">คุณสามารถเปลี่ยนรหัสพนักงานได้ ระบบจะทำการย้ายข้อมูลให้โดยอัตโนมัติ</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">{t.name}</Label>
+                <Label htmlFor="name">{t.staffName}</Label>
                 <Input 
                   id="name" 
                   placeholder="ชื่อ-นามสกุล"
@@ -212,7 +211,7 @@ export default function StaffPage() {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="w-[120px]">รหัสพนักงาน</TableHead>
-              <TableHead>{t.name}</TableHead>
+              <TableHead>{t.staffName}</TableHead>
               <TableHead>{t.role}</TableHead>
               <TableHead>{t.active}</TableHead>
               <TableHead className="text-right">{t.actions}</TableHead>

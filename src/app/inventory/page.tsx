@@ -52,7 +52,6 @@ export default function InventoryPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   
-  // Scanner State
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -108,7 +107,7 @@ export default function InventoryPage() {
       toast({ title: t.completed, description: `แก้ไขข้อมูล ${formData.name} เรียบร้อย` })
     } else {
       const newProduct: Product = {
-        id: '', // Will be assigned by Firestore
+        id: '', 
         name: formData.name!,
         price: Number(formData.price),
         stock: Number(formData.stock),
@@ -137,7 +136,6 @@ export default function InventoryPage() {
     setFormData(prev => ({ ...prev, imageUrl: randomImg.imageUrl }))
   }
 
-  // Camera Permission Logic
   useEffect(() => {
     if (isScannerOpen) {
       const getCameraPermission = async () => {
@@ -200,7 +198,6 @@ export default function InventoryPage() {
               <DialogTitle>{editingProduct ? "แก้ไขสินค้า" : t.addProduct}</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-              {/* Left Side: Image Preview & URL */}
               <div className="space-y-4">
                 <Label className="text-base font-bold">รูปบรรจุภัณฑ์สินค้า</Label>
                 
@@ -244,11 +241,10 @@ export default function InventoryPage() {
                 </div>
               </div>
 
-              {/* Right Side: Form Data */}
               <div className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">{t.name}</Label>
+                    <Label htmlFor="name">{t.productName}</Label>
                     <Input 
                       id="name" 
                       placeholder="เช่น อาหารแมวเกรดพรีเมียม"
@@ -339,7 +335,6 @@ export default function InventoryPage() {
         />
       </div>
 
-      {/* Scanner Dialog */}
       <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -375,7 +370,7 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="w-[100px]">รูปสินค้า</TableHead>
-              <TableHead>{t.name}</TableHead>
+              <TableHead>{t.productName}</TableHead>
               <TableHead>{t.barcode}</TableHead>
               <TableHead>{t.category}</TableHead>
               <TableHead>{t.price} (฿)</TableHead>
