@@ -112,7 +112,7 @@ export default function ManualPage() {
             <p className="text-muted-foreground">เนื่องจากคุณเอาขึ้น GitHub แล้ว ให้ทำแบบนี้ครับ:</p>
             <ol className="list-decimal list-inside space-y-1">
               <li>ไปที่หน้า GitHub ของคุณ</li>
-              <li>กดปุ่มสีเขียวที่เขียนว่า <b>"<> Code"</b></li>
+              <li>กดปุ่มสีเขียวที่เขียนว่า <b>"{'<>'}" Code</b></li>
               <li>เลือก <b>"Download ZIP"</b> แล้วนำไปแตกไฟล์ในคอมพิวเตอร์</li>
               <li>จากนั้นค่อยรันคำสั่ง Terminal ตามขั้นตอนด้านล่างครับ</li>
             </ol>
