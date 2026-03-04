@@ -20,7 +20,8 @@ import {
   Loader2,
   Lock,
   CheckCircle2,
-  Upload
+  Upload,
+  AlertTriangle
 } from 'lucide-react'
 import { 
   Table, 
@@ -45,6 +46,7 @@ import { Badge } from '@/components/ui/badge'
 import { PlaceHolderImages } from '@/lib/placeholder-images'
 import Image from 'next/image'
 import { doc } from 'firebase/firestore'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function InventoryPage() {
   const { products, addProduct, updateProduct, deleteProduct, isLoading: isInventoryLoading } = useInventory()
@@ -103,13 +105,6 @@ export default function InventoryPage() {
       }
     };
   }, [isScannerOpen, hasScannerPermission]);
-
-  // Auto-request permission when scanner opens
-  useEffect(() => {
-    if (isScannerOpen && hasScannerPermission === null) {
-      requestScannerCamera();
-    }
-  }, [isScannerOpen]);
 
   // Product Photo Capture Effect
   useEffect(() => {
@@ -243,10 +238,14 @@ export default function InventoryPage() {
   }
 
   const simulateScan = () => {
+    // เลือกสินค้าที่มีอยู่แล้วมาสุ่มเลข หรือสุ่มเลขใหม่ที่ดูเหมือนบาร์โค้ดจริง
     const scannedCode = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
     setFormData(prev => ({ ...prev, barcode: scannedCode }));
     setIsScannerOpen(false);
-    toast({ title: "สแกนสำเร็จ", description: `รหัสที่พบ: ${scannedCode}` });
+    toast({ 
+      title: "จำลองการสแกนสำเร็จ", 
+      description: `รหัสบาร์โค้ดใหม่: ${scannedCode}` 
+    });
   }
 
   if (isInventoryLoading) {
@@ -432,29 +431,36 @@ export default function InventoryPage() {
       <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader><DialogTitle>สแกนบาร์โค้ดสินค้า</DialogTitle></DialogHeader>
-          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
-            {hasScannerPermission ? (
-              <>
-                <video ref={scannerVideoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
-                <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
-              </>
-            ) : (
-              <div className="p-6 text-center space-y-4">
-                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Camera className="w-8 h-8 text-white" />
+          <div className="space-y-4">
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800 text-xs">คำชี้แจง</AlertTitle>
+              <AlertDescription className="text-amber-700 text-[10px]">
+                ขณะนี้ตัวแอปแสดงภาพจากกล้องเพื่อเล็งเท่านั้น ระบบถอดรหัส (Barcode Decoder) อยู่ระหว่างการพัฒนาบนเว็บแผนฟรี <b>กรุณาใช้ปุ่มจำลองด้านล่างเพื่อสุ่มรหัสแทนครับ</b>
+              </AlertDescription>
+            </Alert>
+            <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
+              {hasScannerPermission ? (
+                <>
+                  <video ref={scannerVideoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
+                  <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
+                </>
+              ) : (
+                <div className="p-6 text-center space-y-4">
+                  <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Camera className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-white font-bold">ต้องการการเข้าถึงกล้อง</h3>
+                  <Button onClick={requestScannerCamera} className="w-full bg-primary hover:bg-primary/90">
+                    อนุญาตใช้งานกล้อง
+                  </Button>
                 </div>
-                <h3 className="text-white font-bold">ต้องการการเข้าถึงกล้อง</h3>
-                <p className="text-white/60 text-sm">เพื่อใช้ฟีเจอร์สแกนบาร์โค้ด กรุณากดปุ่มอนุญาตด้านล่าง</p>
-                <Button onClick={requestScannerCamera} className="w-full bg-primary hover:bg-primary/90">
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  อนุญาตใช้งานกล้อง
-                </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
-            <Button onClick={simulateScan} variant="outline">จำลองการสแกน</Button>
+            <Button onClick={simulateScan} variant="outline" className="bg-accent/10">จำลองการสแกน</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
