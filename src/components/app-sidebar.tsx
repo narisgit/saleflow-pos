@@ -15,7 +15,8 @@ import {
   LogOut,
   User as UserIcon,
   BookOpen,
-  CircleCheck
+  CircleCheck,
+  Clock
 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -144,10 +145,10 @@ export function AppSidebar() {
           </SidebarMenuItem>
           
           <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
-            <div className="px-3 py-2 bg-green-50 rounded-lg border border-green-100 flex items-center justify-between">
+            <div className="px-3 py-2 bg-orange-100 rounded-lg border border-orange-300 flex items-center justify-between animate-pulse">
               <div className="flex items-center gap-2">
-                <CircleCheck className="w-3 h-3 text-green-600" />
-                <span className="text-[10px] text-green-700 font-medium">Updated at {buildTime}</span>
+                <Clock className="w-3 h-3 text-orange-600" />
+                <span className="text-[10px] text-orange-700 font-bold">Build: {buildTime}</span>
               </div>
             </div>
           </SidebarMenuItem>

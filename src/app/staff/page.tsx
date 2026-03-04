@@ -165,20 +165,13 @@ export default function StaffPage() {
         </div>
       </div>
 
-      <Alert className="bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertTitle className="text-blue-700">คำแนะนำการตั้งรหัสพนักงาน</AlertTitle>
-        <AlertDescription className="text-blue-600">
-          คุณสามารถตั้งรหัสพนักงานได้ในรูปแบบ <b>EMP-001</b> เพื่อให้เรียกขานและจดจำได้ง่ายขึ้นในหน้าใบเสร็จและประวัติการขายครับ
+      <Alert className="bg-orange-50 border-orange-200">
+        <Info className="h-4 w-4 text-orange-600" />
+        <AlertTitle className="text-orange-700">ตรวจสอบความถูกต้อง</AlertTitle>
+        <AlertDescription className="text-orange-600 font-bold underline">
+          หากคุณยังเห็นคำว่า "ชื่อสินค้า" ในตารางด้านล่าง แปลว่าหน้าเว็บของคุณยังไม่อัปเดต กรุณาปิดแท็บแล้วเปิดใหม่ครับ
         </AlertDescription>
       </Alert>
-
-      {!isAdmin && (
-        <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg flex items-center gap-3 text-orange-800 text-sm">
-          <Lock className="w-5 h-5" />
-          <span>คุณยังไม่มีสิทธิ์ Admin กรุณากดปุ่ม "กู้คืนสิทธิ์ Admin" ด้านบนเพื่อเริ่มจัดการระบบ</span>
-        </div>
-      )}
 
       <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
         <Table>
@@ -329,7 +322,7 @@ export default function StaffPage() {
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               ยืนยันการลบ
-            </AlertDialogAction>
+            </AlertBadge>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
