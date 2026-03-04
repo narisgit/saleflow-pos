@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   Smartphone,
   QrCode,
-  Download
+  Download,
+  MonitorSmartphone,
+  MousePointer2
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -123,12 +125,53 @@ export default function ManualPage() {
         ))}
       </div>
 
+      {/* How to use Mobile Emulator */}
+      <Card className="border-none shadow-lg border-2 border-accent/20">
+        <CardHeader className="bg-accent/10">
+          <CardTitle className="flex items-center gap-2 text-accent">
+            <MonitorSmartphone className="w-5 h-5" />
+            วิธีเปิดโหมดมือถือบนคอมพิวเตอร์ (สำหรับทดสอบ)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h4 className="font-bold flex items-center gap-2">
+                <span className="bg-accent text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                กดปุ่ม F12 บนคีย์บอร์ด
+              </h4>
+              <p className="text-sm text-muted-foreground">เพื่อเปิดเครื่องมือสำหรับนักพัฒนา (Developer Tools) ขึ้นมาทางด้านขวาหรือด้านล่างของหน้าจอ</p>
+            </div>
+            <div className="space-y-3 border-l md:pl-6">
+              <h4 className="font-bold flex items-center gap-2">
+                <span className="bg-accent text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                คลิกไอคอน "Toggle Device Toolbar"
+              </h4>
+              <p className="text-sm text-muted-foreground">มองหาไอคอนรูป **โทรศัพท์ซ้อนกับแท็บเล็ต** ที่มุมซ้ายบนของหน้าต่าง F12 (หรือกด Ctrl+Shift+M)</p>
+              <div className="bg-muted p-4 rounded-lg flex items-center justify-center border-2 border-dashed">
+                <div className="flex items-center gap-2 text-accent font-bold animate-pulse">
+                  <MonitorSmartphone className="w-8 h-8" />
+                  <span>คลิกที่นี่ในหน้าต่าง F12</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <Alert className="bg-accent/5 border-accent/20 mt-4">
+            <MousePointer2 className="w-4 h-4 text-accent" />
+            <AlertTitle className="text-accent">คำแนะนำเพิ่มเติม</AlertTitle>
+            <AlertDescription className="text-accent-foreground text-xs">
+              หลังจากคลิกไอคอนแล้ว หน้าจอแอปจะหดเล็กลงเหมือนมือถือ คุณสามารถเลือกขนาดรุ่นมือถือ (เช่น iPhone, Samsung) ได้จากเมนูด้านบนหน้าจอ
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+
       {/* Mobile Testing Section */}
       <Card className="border-none shadow-lg bg-accent/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-accent" />
-            การทดสอบผ่านมือถือ (Mobile Application)
+            การใช้งานผ่านมือถือจริง (Mobile Application)
           </CardTitle>
         </CardHeader>
         <CardContent>

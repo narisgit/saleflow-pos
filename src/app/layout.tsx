@@ -1,11 +1,12 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import AuthGuard from '@/components/auth-guard';
+import { Store } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'SaleFlow POS',
@@ -39,6 +40,14 @@ export default function RootLayout({
             <SidebarProvider>
               <AppSidebar />
               <SidebarInset>
+                {/* Mobile Header */}
+                <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
+                  <SidebarTrigger />
+                  <div className="flex items-center gap-2 font-bold text-primary">
+                    <Store className="h-5 w-5" />
+                    <span>SaleFlow</span>
+                  </div>
+                </header>
                 <main className="p-4 md:p-6 lg:p-8">
                   {children}
                 </main>
