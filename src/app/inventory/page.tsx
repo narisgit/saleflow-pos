@@ -19,7 +19,8 @@ import {
   RefreshCw,
   Loader2,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  Upload
 } from 'lucide-react'
 import { 
   Table, 
@@ -41,7 +42,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PlaceHolderImages } from '@/lib/placeholder-images'
 import Image from 'next/image'
 import { doc } from 'firebase/firestore'
@@ -59,6 +59,7 @@ export default function InventoryPage() {
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
   const { data: currentUserProfile } = useDoc(currentUserRef)
@@ -97,6 +98,21 @@ export default function InventoryPage() {
       resetForm()
     }
     setIsDialogOpen(true)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 1024 * 1024) { // Limit 1MB for base64 storage
+        toast({ title: "ไฟล์ใหญ่เกินไป", description: "กรุณาเลือกรูปภาพที่มีขนาดไม่เกิน 1MB", variant: "destructive" })
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFormData(f => ({ ...f, imageUrl: reader.result as string }))
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const handleSave = () => {
@@ -207,9 +223,9 @@ export default function InventoryPage() {
                       <>
                         <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <Button variant="secondary" size="sm" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))} className="gap-2">
-                            <RefreshCw className="w-4 h-4" />
-                            สุ่มรูปใหม่
+                          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
+                            <Upload className="w-4 h-4" />
+                            เปลี่ยนรูป
                           </Button>
                           <Button variant="destructive" size="icon" onClick={() => setFormData(f => ({ ...f, imageUrl: '' }))}>
                             <X className="w-4 h-4" />
@@ -221,17 +237,26 @@ export default function InventoryPage() {
                         <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm">
                           <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
                         </div>
-                        <p className="text-xs text-muted-foreground">เลือกรูปตัวอย่างบรรจุภัณฑ์</p>
-                        <Button variant="outline" size="sm" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))} className="mt-2">
-                          <Plus className="w-4 h-4 mr-2" />
-                          ใช้รูปบรรจุภัณฑ์
+                        <p className="text-xs text-muted-foreground">ถ่ายรูป หรือเลือกจากคลังภาพ</p>
+                        <Button variant="default" size="sm" onClick={() => fileInputRef.current?.click()} className="mt-2 gap-2">
+                          <Camera className="w-4 h-4" />
+                          ถ่ายรูป/เลือกรูป
                         </Button>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          className="hidden" 
+                          accept="image/*" 
+                          onChange={handleFileChange}
+                        />
                       </div>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="imageUrl" className="text-xs text-muted-foreground">หรือใส่ URL รูปภาพสินค้า</Label>
-                    <Input id="imageUrl" placeholder="https://example.com/image.jpg" value={formData.imageUrl} onChange={e => setFormData(f => ({ ...f, imageUrl: e.target.value }))} className="text-xs" />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setFormData(f => ({ ...f, imageUrl: PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)].imageUrl }))}>
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      ใช้รูปตัวอย่าง
+                    </Button>
                   </div>
                 </div>
                 <div className="space-y-6">
