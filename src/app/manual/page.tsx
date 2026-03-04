@@ -16,7 +16,8 @@ import {
   UserPlus,
   ShieldCheck,
   Camera,
-  Settings
+  Settings,
+  Globe
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -36,43 +37,68 @@ export default function ManualPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-none shadow-sm bg-orange-50/50 border-orange-200 border">
+        <Card className="border-none shadow-sm bg-orange-50/50 border-orange-200 border md:col-span-2">
           <CardHeader className="flex flex-row items-center gap-2">
-            <Camera className="w-5 h-5 text-orange-600" />
-            <CardTitle className="text-lg">วิธีเปิดกล้องเพื่อสแกน (สำคัญ!)</CardTitle>
+            <Camera className="w-6 h-6 text-orange-600" />
+            <CardTitle className="text-xl">วิธีเปิดกล้องเพื่อสแกน (สำหรับ Android และ iPhone)</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm space-y-4">
-            <div className="space-y-2">
-              <p className="font-bold text-orange-700">สำหรับ iPhone (Safari):</p>
-              <ol className="list-decimal list-inside text-muted-foreground space-y-1">
-                <li>ไปที่ <b>Settings (การตั้งค่า)</b> ของมือถือ</li>
-                <li>เลือกเมนู <b>Safari</b></li>
-                <li>เลื่อนลงล่างสุด เลือก <b>Camera (กล้อง)</b></li>
-                <li>เลือกเป็น <b>Allow (อนุญาต)</b></li>
-              </ol>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 font-bold text-orange-700 text-lg">
+                <Smartphone className="w-5 h-5" />
+                <span>สำหรับ Android (Google Chrome)</span>
+              </div>
+              <div className="bg-white/50 p-4 rounded-lg border border-orange-100 space-y-3">
+                <p className="font-semibold">วิธีที่ 1: ผ่านแถบที่อยู่เว็บ (เร็วที่สุด)</p>
+                <ol className="list-decimal list-inside text-muted-foreground space-y-1 ml-2">
+                  <li>กดไอคอน <b>"แม่กุญแจ"</b> หรือ <b>"การตั้งค่า"</b> หน้าชื่อเว็บ `.web.app`</li>
+                  <li>เลือกเมนู <b>"Permissions" (การอนุญาต)</b> หรือ <b>"Site settings"</b></li>
+                  <li>หาคำว่า <b>"Camera" (กล้อง)</b> แล้วกดเปิดให้เป็น <b>"Allow" (อนุญาต)</b></li>
+                </ol>
+                <p className="font-semibold mt-4">วิธีที่ 2: ผ่านการตั้งค่า Chrome</p>
+                <ol className="list-decimal list-inside text-muted-foreground space-y-1 ml-2">
+                  <li>กด <b>จุด 3 จุด</b> มุมขวาบนของ Chrome</li>
+                  <li>เลือก <b>Settings (การตั้งค่า)</b> > <b>Site settings</b></li>
+                  <li>เลือก <b>Camera</b> > ค้นหาลิงก์ของร้านในรายการ "Blocked"</li>
+                  <li>กดเลือกชื่อเว็บแล้วกด <b>"Allow" (อนุญาต)</b></li>
+                </ol>
+              </div>
             </div>
-            <div className="space-y-2">
-              <p className="font-bold text-orange-700">สำหรับ Android (Chrome):</p>
-              <ol className="list-decimal list-inside text-muted-foreground space-y-1">
-                <li>กด <b>จุด 3 จุด</b> ที่มุมขวาบนของเบราว์เซอร์</li>
-                <li>เลือก <b>Settings (การตั้งค่า)</b> > <b>Site settings</b></li>
-                <li>เลือก <b>Camera</b> และอนุญาตให้ใช้งาน</li>
-              </ol>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 font-bold text-blue-700 text-lg">
+                <Smartphone className="w-5 h-5" />
+                <span>สำหรับ iPhone (Safari)</span>
+              </div>
+              <div className="bg-white/50 p-4 rounded-lg border border-blue-100 space-y-3">
+                <p className="font-semibold">วิธีที่ 1: ผ่านแถบที่อยู่เว็บ</p>
+                <ol className="list-decimal list-inside text-muted-foreground space-y-1 ml-2">
+                  <li>กดไอคอน <b>"AA"</b> ตรงซ้ายมือของแถบพิมพ์ชื่อเว็บ</li>
+                  <li>เลือก <b>"Website Settings" (การตั้งค่าเว็บไซต์)</b></li>
+                  <li>เปลี่ยน Camera จาก Ask เป็น <b>"Allow" (อนุญาต)</b></li>
+                </ol>
+                <p className="font-semibold mt-4">วิธีที่ 2: ผ่านการตั้งค่าเครื่อง</p>
+                <ol className="list-decimal list-inside text-muted-foreground space-y-1 ml-2">
+                  <li>ไปที่แอป <b>Settings (การตั้งค่า)</b> ของ iPhone</li>
+                  <li>เลื่อนหาเมนู <b>Safari</b></li>
+                  <li>เลื่อนลงล่างสุดเลือก <b>Camera</b></li>
+                  <li>เลือกเป็น <b>Allow (อนุญาต)</b></li>
+                </ol>
+              </div>
             </div>
-            <p className="text-xs text-orange-600 italic">* หากยังไม่ได้ ให้ลอง "ล้างคุกกี้" หรือเข้า "โหมดไม่ระบุตัวตน"</p>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-sm bg-accent/5">
           <CardHeader className="flex flex-row items-center gap-2">
-            <Smartphone className="w-5 h-5 text-accent" />
-            <CardTitle className="text-lg">การใช้งานบนมือถือ</CardTitle>
+            <Globe className="w-5 h-5 text-accent" />
+            <CardTitle className="text-lg">การใช้งานบนหน้าจอโฮม</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-3">
             <p>เพื่อให้ใช้งานได้สะดวกเหมือนแอปจริง แนะนำให้เพิ่มไว้ที่หน้าจอโฮม:</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li><b>iPhone:</b> เปิด Safari {'>'} กดปุ่ม Share {'>'} เลือก "Add to Home Screen"</li>
-              <li><b>Android:</b> เปิด Chrome {'>'} กดจุด 3 จุด {'>'} เลือก "Install app"</li>
+              <li><b>Android:</b> เปิด Chrome {'>'} กดจุด 3 จุด {'>'} เลือก "Install app" หรือ "Add to Home screen"</li>
             </ul>
           </CardContent>
         </Card>
@@ -89,16 +115,6 @@ export default function ManualPage() {
               <li>พนักงานตั้งอีเมลและรหัสผ่านที่ตนเองจำได้</li>
               <li>แจ้ง Admin เพื่อขอปรับตำแหน่งสิทธิ์การใช้งาน</li>
             </ol>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">การขายสินค้า (POS)</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            <p>ที่หน้า <b>"จุดขาย"</b> ให้เลือกสินค้าหรือสแกนบาร์โค้ด ตรวจสอบยอดเงิน และกดชำระเงิน ระบบจะตัดสต็อกและบันทึกยอดขายให้อัตโนมัติ</p>
           </CardContent>
         </Card>
       </div>
