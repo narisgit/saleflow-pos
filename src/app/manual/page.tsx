@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,22 +7,19 @@ import {
   Briefcase, 
   UserCheck, 
   BookOpen, 
-  Info, 
   Package, 
   ShoppingCart, 
-  History, 
   CheckCircle2,
   Smartphone,
   QrCode,
   Download,
   MonitorSmartphone,
-  MousePointer2,
   KeyRound,
   Database,
   ExternalLink,
-  Cloud
+  Cloud,
+  Globe
 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 
 export default function ManualPage() {
@@ -114,23 +110,33 @@ export default function ManualPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-green-800 text-sm space-y-4">
-          <p>เพื่อให้พนักงานใช้งานได้จากมือถือส่วนตัว คุณต้องทำการ <b>Deploy</b> เพื่อรับลิงก์เว็บไซต์ถาวร:</p>
-          <div className="bg-white p-4 rounded-lg border border-green-100 space-y-3">
+          <div className="bg-white p-4 rounded-lg border border-green-100 space-y-4">
+            <h4 className="font-bold text-base flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              ทำไมถึงเข้าลิงก์ .web.app แล้วหาเพจไม่เจอ?
+            </h4>
+            <p className="text-sm">URL เดิมที่ลงท้ายด้วย <code>.web.app</code> เป็นของระบบ Static Hosting แบบเก่า <b>ไม่รองรับ Next.js</b> ครับ</p>
+            <p className="text-sm font-bold">วิธีที่ถูกต้องในการดู URL ใช้งานจริง:</p>
+            <ol className="list-decimal pl-5 space-y-2">
+              <li>ไปที่ Firebase Console เมนู <b>Build &gt; App Hosting</b></li>
+              <li>คลิกเลือก Backend ที่คุณสร้างไว้ (เชื่อมกับ GitHub)</li>
+              <li>มองหาหัวข้อ <b>Domains</b> หรือ <b>URL</b> ในหน้านั้น คุณจะได้ลิงก์ใหม่สำหรับใช้งานจริงครับ</li>
+            </ol>
+          </div>
+          
+          <div className="space-y-3">
+            <p>ขั้นตอนการ Deploy ใหม่ (ถ้ายังไม่มี Backend):</p>
             <div className="flex items-start gap-3">
               <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
-              <p>นำโค้ดของคุณขึ้น <b>GitHub</b> หรือ <b>GitLab</b></p>
+              <p>นำโค้ดขึ้น <b>GitHub</b></p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
-              <p>ไปที่ Firebase Console เมนู <b>Build &gt; App Hosting</b></p>
+              <p>ใน Firebase Console เลือก <b>Build &gt; App Hosting</b></p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
-              <p>กด <b>Create a backend</b> แล้วเชื่อมต่อกับ Repository ของคุณ</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">4</span>
-              <p>รอระบบ Build จนเสร็จ คุณจะได้ URL (เช่น <b>https://saleflow-pos.web.app</b>) สำหรับใช้งานครับ</p>
+              <p>กด <b>Create a backend</b> เชื่อม GitHub และรอระบบ Build จนเสร็จ</p>
             </div>
           </div>
         </CardContent>
