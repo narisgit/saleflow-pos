@@ -2,6 +2,7 @@
 "use client"
 
 import { useOrders, useLanguage } from '@/lib/store'
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { 
   Table, 
   TableBody, 
@@ -10,7 +11,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Search, Eye, FileText, User, Printer, Trash2 } from 'lucide-react'
+import { Search, Eye, FileText, User, Printer, Trash2, Lock } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useState, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -34,14 +35,23 @@ import {
 import { Order } from '@/lib/types'
 import { Separator } from '@/components/ui/separator'
 import { toast } from '@/hooks/use-toast'
+import { doc } from 'firebase/firestore'
 
 export default function HistoryPage() {
   const { orders, deleteOrder } = useOrders()
   const { t } = useLanguage()
+  const { user } = useUser()
+  const db = useFirestore()
+
   const [search, setSearch] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showReceipt, setShowReceipt] = useState(false)
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null)
+
+  // เช็คสิทธิ์ผู้ใช้งาน
+  const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
+  const { data: currentUserProfile } = useDoc(currentUserRef)
+  const canDeleteHistory = currentUserProfile?.role === 'Admin'
 
   const filteredOrders = useMemo(() => {
     return orders.filter(o => 
@@ -57,6 +67,10 @@ export default function HistoryPage() {
 
   const confirmDelete = () => {
     if (orderToDelete) {
+      if (!canDeleteHistory) {
+        toast({ title: "ถูกปฏิเสธ", description: "เฉพาะ Admin เท่านั้นที่ลบประวัติได้", variant: "destructive" })
+        return
+      }
       deleteOrder(orderToDelete)
       toast({
         title: "Order Deleted",
@@ -138,14 +152,16 @@ export default function HistoryPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        onClick={() => setOrderToDelete(order.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {canDeleteHistory && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          onClick={() => setOrderToDelete(order.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
