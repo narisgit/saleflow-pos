@@ -16,7 +16,9 @@ import {
   Edit,
   RefreshCw,
   Lock,
-  Key
+  Key,
+  Info,
+  UserPlus
 } from 'lucide-react'
 import { 
   Table, 
@@ -54,6 +56,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from '@/hooks/use-toast'
 import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { doc } from 'firebase/firestore'
 
@@ -67,7 +70,6 @@ export default function StaffPage() {
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
   const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null)
 
-  // ดึงข้อมูลโปรไฟล์ของผู้ที่ล็อกอินอยู่ เพื่อเช็คสิทธิ์
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
   const { data: currentUserProfile } = useDoc(currentUserRef)
   
@@ -81,43 +83,29 @@ export default function StaffPage() {
     email: ''
   })
 
-  const generateSimpleId = () => {
-    const num = Math.floor(100 + Math.random() * 900);
-    setFormData(prev => ({ ...prev, id: `EMP-${num}` }));
-  }
-
   const resetForm = () => {
     setFormData({ id: '', name: '', role: 'Cashier', active: true, email: '' })
     setEditingStaff(null)
   }
 
-  const handleOpenDialog = (staff?: Staff) => {
-    if (staff) {
-      setEditingStaff(staff)
-      setFormData(staff)
-    } else {
-      resetForm()
-      generateSimpleId()
-    }
+  const handleOpenDialog = (staff: Staff) => {
+    setEditingStaff(staff)
+    setFormData(staff)
     setIsDialogOpen(true)
   }
 
   const handleSave = () => {
     if (!formData.name || !formData.id) {
-      toast({ title: "ข้อผิดพลาด", description: "กรุณาระบุชื่อและรหัสพนักงาน", variant: "destructive" })
+      toast({ title: "ข้อผิดพลาด", description: "ข้อมูลไม่ครบถ้วน", variant: "destructive" })
       return
     }
 
     const staffData: Staff = {
-      id: formData.id.trim().toUpperCase(),
+      id: formData.id,
       name: formData.name!,
       role: (formData.role as any) || 'Cashier',
       active: true,
       email: formData.email || ''
-    }
-
-    if (editingStaff && editingStaff.id !== staffData.id) {
-      deleteStaff(editingStaff.id);
     }
     
     addStaff(staffData)
@@ -125,7 +113,7 @@ export default function StaffPage() {
     resetForm()
     toast({ 
       title: t.completed, 
-      description: editingStaff ? `บันทึกข้อมูล ${staffData.name} เรียบร้อยแล้ว` : `เพิ่มพนักงาน ${staffData.name} เรียบร้อยแล้ว` 
+      description: `บันทึกข้อมูล ${staffData.name} เรียบร้อยแล้ว`
     })
   }
 
@@ -167,82 +155,19 @@ export default function StaffPage() {
               กู้คืนสิทธิ์ Admin
             </Button>
           )}
-          {isAdmin && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => handleOpenDialog()} className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t.addStaff}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>{editingStaff ? "แก้ไขข้อมูลพนักงาน" : t.addStaff}</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-6 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="staff-id">รหัสพนักงาน (ID)</Label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input 
-                          id="staff-id" 
-                          placeholder="เช่น EMP-01"
-                          value={formData.id} 
-                          onChange={e => setFormData(f => ({ ...f, id: e.target.value.toUpperCase() }))}
-                          className="pl-10 font-mono" 
-                        />
-                      </div>
-                      <Button variant="outline" size="icon" onClick={generateSimpleId} title="สุ่มรหัสใหม่">
-                        <RefreshCw className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="name">{t.staffName}</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="ชื่อ-นามสกุล"
-                      value={formData.name} 
-                      onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">อีเมล (Email)</Label>
-                    <Input 
-                      id="email" 
-                      type="email"
-                      placeholder="example@mail.com"
-                      value={formData.email} 
-                      onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role">{t.role}</Label>
-                    <Select 
-                      value={formData.role} 
-                      onValueChange={v => setFormData(f => ({ ...f, role: v as any }))}
-                    >
-                      <SelectTrigger id="role">
-                        <SelectValue placeholder="เลือกตำแหน่ง" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Admin">Admin (ผู้ดูแลระบบ)</SelectItem>
-                        <SelectItem value="Manager">Manager (ผู้จัดการ)</SelectItem>
-                        <SelectItem value="Cashier">Cashier (พนักงานขาย)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
-                  <Button onClick={handleSave}>{editingStaff ? "บันทึกการแก้ไข" : t.saveStaff}</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
       </div>
+
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertTitle className="text-blue-700">คำแนะนำการเพิ่มพนักงาน</AlertTitle>
+        <AlertDescription className="text-blue-600">
+          เพื่อให้พนักงานมีรหัสผ่านของตนเอง: 
+          1. ให้พนักงานไปที่หน้า <b>Login</b> แล้วเลือก <b>Register</b> เพื่อสมัครสมาชิก 
+          2. เมื่อพนักงานสมัครเสร็จ รายชื่อจะปรากฏในตารางด้านล่าง 
+          3. คุณ (Admin) สามารถกดปุ่มแก้ไขเพื่อเปลี่ยนตำแหน่ง (Role) ให้เขาได้ครับ
+        </AlertDescription>
+      </Alert>
 
       {!isAdmin && (
         <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg flex items-center gap-3 text-orange-800 text-sm">
@@ -255,7 +180,6 @@ export default function StaffPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-[120px]">รหัสพนักงาน</TableHead>
               <TableHead>{t.staffName}</TableHead>
               <TableHead>{t.role}</TableHead>
               <TableHead>{t.active}</TableHead>
@@ -265,16 +189,13 @@ export default function StaffPage() {
           <TableBody>
             {staffList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic">
-                  ไม่พบรายชื่อพนักงานในระบบ
+                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground italic">
+                  ยังไม่มีพนักงานสมัครสมาชิกเข้ามาในระบบ
                 </TableCell>
               </TableRow>
             ) : (
               staffList.map((staff) => (
                 <TableRow key={staff.id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-mono text-xs font-bold text-primary">
-                    {staff.id}
-                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -320,7 +241,6 @@ export default function StaffPage() {
                             className="h-8 w-8 text-destructive hover:bg-destructive/10"
                             disabled={staff.id === user?.uid && staffList.length > 1}
                             onClick={() => setStaffToDelete(staff)}
-                            title={staff.id === user?.uid ? "ไม่แนะนำให้ลบตัวเอง" : "ลบพนักงาน"}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -336,12 +256,50 @@ export default function StaffPage() {
         </Table>
       </div>
 
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>แก้ไขข้อมูลพนักงาน</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">{t.staffName}</Label>
+              <Input 
+                id="name" 
+                value={formData.name} 
+                onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">{t.role}</Label>
+              <Select 
+                value={formData.role} 
+                onValueChange={v => setFormData(f => ({ ...f, role: v as any }))}
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="เลือกตำแหน่ง" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Admin">Admin (ผู้ดูแลระบบ)</SelectItem>
+                  <SelectItem value="Manager">Manager (ผู้จัดการ)</SelectItem>
+                  <SelectItem value="Cashier">Cashier (พนักงานขาย)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
+            <Button onClick={handleSave}>บันทึกการแก้ไข</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!staffToDelete} onOpenChange={(open) => !open && setStaffToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ยืนยันการลบพนักงาน?</AlertDialogTitle>
             <AlertDialogDescription>
-              คุณต้องการนำพนักงานชื่อ <strong>{staffToDelete?.name}</strong> (ID: {staffToDelete?.id}) ออกจากระบบใช่หรือไม่?
+              คุณต้องการนำพนักงานชื่อ <strong>{staffToDelete?.name}</strong> ออกจากระบบใช่หรือไม่?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

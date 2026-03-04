@@ -12,7 +12,9 @@ import {
   Info,
   CheckCircle2,
   Smartphone,
-  PlusSquare
+  PlusSquare,
+  UserPlus,
+  ShieldCheck
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -46,13 +48,28 @@ export default function ManualPage() {
           </CardContent>
         </Card>
 
+        <Card className="border-none shadow-sm bg-blue-50/50">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <UserPlus className="w-5 h-5 text-blue-600" />
+            <CardTitle className="text-lg">การเพิ่มพนักงานใหม่</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-2">
+            <p>พนักงานแต่ละคนต้องตั้งรหัสผ่านด้วยตนเองเพื่อความปลอดภัย:</p>
+            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+              <li>ให้พนักงานสมัครสมาชิกเองที่หน้า <b>Register</b></li>
+              <li>พนักงานตั้งอีเมลและรหัสผ่านที่ตนเองจำได้</li>
+              <li>แจ้ง Admin เพื่อขอปรับตำแหน่งสิทธิ์การใช้งาน</li>
+            </ol>
+          </CardContent>
+        </Card>
+
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">1. จัดการพนักงาน</CardTitle>
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">1. จัดการตำแหน่ง (สำหรับ Admin)</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
-            <p>เพิ่มรายชื่อพนักงานที่เมนู <b>"จัดการพนักงาน"</b> เพื่อใช้ระบุชื่อผู้ขายในใบเสร็จและตรวจสอบประวัติการขายย้อนหลังได้ถูกต้อง</p>
+            <p>เมื่อพนักงานสมัครสมาชิกแล้ว Admin สามารถไปที่เมนู <b>"จัดการพนักงาน"</b> เพื่อเปลี่ยนตำแหน่งเป็น Manager (ดูรายงานได้) หรือ Admin (แก้สต็อกได้)</p>
           </CardContent>
         </Card>
 
