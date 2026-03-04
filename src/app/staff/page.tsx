@@ -92,7 +92,6 @@ export default function StaffPage() {
 
   const handleOpenDialog = (staff: Staff) => {
     setEditingStaff(staff)
-    // หากพนักงานยังไม่มีรหัส ให้สร้างรหัสเริ่มต้นให้
     const code = staff.employeeCode || `EMP-${staff.id.slice(-3).toUpperCase()}`
     setFormData({ ...staff, employeeCode: code })
     setIsDialogOpen(true)
@@ -104,7 +103,6 @@ export default function StaffPage() {
       return
     }
 
-    // กำหนดรหัสพนักงานเริ่มต้นหากไม่ได้ใส่มา
     const finalCode = formData.employeeCode || `EMP-${formData.id.slice(-3).toUpperCase()}`
 
     const staffData: Staff = {

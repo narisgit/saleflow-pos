@@ -50,8 +50,12 @@ export function AppSidebar() {
   const auth = useAuth()
   const { user } = useUser()
 
-  // ใช้เวลาปัจจุบันเป็นตัวระบุ Build (ในโหมด Static จะถูกคงค่าไว้ตอน Build)
-  const buildTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+  // ใช้เวลาปัจจุบันรวมวินาทีเพื่อระบุเวอร์ชันให้ชัดเจน
+  const buildTime = new Date().toLocaleTimeString('th-TH', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit'
+  })
 
   const navItems = [
     { name: t.dashboard, href: "/", icon: LayoutDashboard },
