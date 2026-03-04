@@ -4,18 +4,18 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, useFirestore } from "@/firebase"
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from "firebase/auth"
 import { doc, setDoc } from "firebase/firestore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Store, Loader2, UserPlus, LogIn } from "lucide-react"
+import { Store, Loader2, UserPlus, LogIn, KeyRound, ArrowLeft } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useLanguage } from "@/lib/store"
 
 export default function LoginPage() {
-  const [isRegister, setIsRegister] = useState(false)
+  const [authMode, setAuthMode] = useState<"login" | "register" | "forgot">("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
@@ -37,41 +37,35 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      if (isRegister) {
-        // Registration Flow
+      if (authMode === "register") {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
         const newUser = userCredential.user
-        
-        // Update Firebase Auth profile
         await updateProfile(newUser, { displayName: name })
-
-        // Create UserProfile document in Firestore (Required for Security Rules)
         const profileRef = doc(db, "userProfiles", newUser.uid)
         await setDoc(profileRef, {
           id: newUser.uid,
           name: name,
           email: email,
-          role: "Cashier" // Default role
+          role: "Cashier"
         })
-
-        toast({
-          title: "Registration Successful",
-          description: `Account created for ${name}`,
-        })
-      } else {
-        // Login Flow
+        toast({ title: "Registration Successful", description: `Account created for ${name}` })
+      } else if (authMode === "login") {
         await signInWithEmailAndPassword(auth, email, password)
-        toast({
-          title: "Login Successful",
-          description: "Welcome back to SaleFlow POS",
+        toast({ title: "Login Successful", description: "Welcome back to SaleFlow POS" })
+      } else if (authMode === "forgot") {
+        await sendPasswordResetEmail(auth, email)
+        toast({ 
+          title: "Email Sent", 
+          description: "ตรวจสอบอีเมลของคุณเพื่อตั้งรหัสผ่านใหม่",
         })
+        setAuthMode("login")
       }
-      router.push("/")
+      if (authMode !== "forgot") router.push("/")
     } catch (error: any) {
       console.error(error)
       toast({
         variant: "destructive",
-        title: isRegister ? "Registration Failed" : "Login Failed",
+        title: "Error",
         description: error.message || "An error occurred during authentication",
       })
     } finally {
@@ -97,17 +91,19 @@ export default function LoginPage() {
             </div>
           </div>
           <CardTitle className="text-2xl font-headline font-bold">
-            {isRegister ? "Staff Registration" : "SaleFlow POS"}
+            {authMode === "register" ? "Staff Registration" : authMode === "forgot" ? "Reset Password" : "SaleFlow POS"}
           </CardTitle>
           <CardDescription>
-            {isRegister 
+            {authMode === "register" 
               ? "Create a new employee account" 
+              : authMode === "forgot"
+              ? "ระบุอีเมลเพื่อรับลิงก์ตั้งรหัสผ่านใหม่"
               : "Enter your employee credentials to access the system"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleAuth}>
           <CardContent className="space-y-4">
-            {isRegister && (
+            {authMode === "register" && (
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input 
@@ -132,33 +128,63 @@ export default function LoginPage() {
                 className="h-11"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11"
-              />
-            </div>
+            {authMode !== "forgot" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  {authMode === "login" && (
+                    <Button 
+                      variant="link" 
+                      className="px-0 font-normal text-xs text-muted-foreground" 
+                      type="button"
+                      onClick={() => setAuthMode("forgot")}
+                    >
+                      Forgot password?
+                    </Button>
+                  )}
+                </div>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button className="w-full h-11 text-lg font-bold" type="submit" disabled={loading}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : (
-                isRegister ? <UserPlus className="w-5 h-5 mr-2" /> : <LogIn className="w-5 h-5 mr-2" />
+                authMode === "register" ? <UserPlus className="w-5 h-5 mr-2" /> : 
+                authMode === "forgot" ? <KeyRound className="w-5 h-5 mr-2" /> :
+                <LogIn className="w-5 h-5 mr-2" />
               )}
-              {isRegister ? "Register Staff" : "Sign In"}
+              {authMode === "register" ? "Register Staff" : authMode === "forgot" ? "Send Reset Link" : "Sign In"}
             </Button>
-            <Button 
-              variant="ghost" 
-              type="button" 
-              className="w-full"
-              onClick={() => setIsRegister(!isRegister)}
-            >
-              {isRegister ? "Already have an account? Sign In" : "New Staff? Register here"}
-            </Button>
+            
+            <div className="flex flex-col w-full gap-2">
+              {authMode !== "login" ? (
+                <Button 
+                  variant="ghost" 
+                  type="button" 
+                  className="w-full"
+                  onClick={() => setAuthMode("login")}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Back to Login
+                </Button>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  type="button" 
+                  className="w-full"
+                  onClick={() => setAuthMode("register")}
+                >
+                  New Staff? Register here
+                </Button>
+              )}
+            </div>
           </CardFooter>
         </form>
       </Card>

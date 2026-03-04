@@ -17,7 +17,8 @@ import {
   QrCode,
   Download,
   MonitorSmartphone,
-  MousePointer2
+  MousePointer2,
+  KeyRound
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -100,7 +101,25 @@ export default function ManualPage() {
         </div>
       </div>
 
-      {/* Role Management Section */}
+      <Card className="border-none shadow-lg bg-orange-50 border-orange-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-700">
+            <KeyRound className="w-5 h-5" />
+            กรณีพนักงานลืมรหัสผ่าน
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-orange-800 text-sm space-y-2">
+          <p>หากพนักงานลืมรหัสผ่าน สามารถทำตามขั้นตอนต่อไปนี้ได้:</p>
+          <ul className="list-decimal pl-5 space-y-1">
+            <li>ไปที่หน้าเข้าสู่ระบบ (Login)</li>
+            <li>คลิกที่ลิงก์ <b>"Forgot password?"</b> ด้านบนช่องใส่รหัสผ่าน</li>
+            <li>กรอกอีเมลของพนักงานที่ใช้ลงทะเบียน</li>
+            <li>กดปุ่ม <b>"Send Reset Link"</b> ระบบจะส่งอีเมลสำหรับตั้งรหัสผ่านใหม่ไปให้</li>
+            <li>พนักงานเปิดอีเมลและคลิกลิงก์เพื่อตั้งรหัสผ่านใหม่ด้วยตัวเอง</li>
+          </ul>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {roles.map((role, i) => (
           <Card key={i} className="border-none shadow-md overflow-hidden">
@@ -125,7 +144,6 @@ export default function ManualPage() {
         ))}
       </div>
 
-      {/* How to use Mobile Emulator */}
       <Card className="border-none shadow-lg border-2 border-accent/20">
         <CardHeader className="bg-accent/10">
           <CardTitle className="flex items-center gap-2 text-accent">
@@ -166,7 +184,6 @@ export default function ManualPage() {
         </CardContent>
       </Card>
 
-      {/* Mobile Testing Section */}
       <Card className="border-none shadow-lg bg-accent/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -189,7 +206,6 @@ export default function ManualPage() {
         </CardContent>
       </Card>
 
-      {/* System Test Case Section */}
       <Card className="border-none shadow-lg bg-primary/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -212,7 +228,6 @@ export default function ManualPage() {
         </CardContent>
       </Card>
 
-      {/* General Features */}
       <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
