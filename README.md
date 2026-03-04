@@ -3,35 +3,39 @@
 
 โปรเจกต์นี้ได้รับการตั้งค่าให้สามารถ **Deploy ได้ฟรี (แผน Spark)** เพื่อการเรียนรู้ โดยไม่ต้องผูกบัตรเครดิต
 
-## 🛠 วิธี Deploy แบบฟรี (Spark Plan)
-หากคุณต้องการหัดนำโค้ดขึ้นระบบจริงโดยไม่เสียค่าใช้จ่าย ให้ทำตามขั้นตอนดังนี้:
+## 🚀 ขั้นตอนการนำไปใช้งาน (Deployment)
 
-1. **Build โค้ดในเครื่อง**:
-   รันคำสั่งใน Terminal:
+เนื่องจากตอนนี้โค้ดทำงานอยู่บน **Cloud Editor (Firebase Studio)** คุณต้องเลือกทำอย่างใดอย่างหนึ่งดังนี้:
+
+### ทางเลือกที่ 1: ทำงานในเครื่องคอมพิวเตอร์ของคุณ (ฟรี 100%)
+1. **ดาวน์โหลดโค้ด**: ดาวน์โหลดไฟล์โปรเจกต์จาก Firebase Studio ลงเครื่องคอมพิวเตอร์ของคุณ
+2. **ติดตั้งโปรแกรม**: เปิด Terminal ในเครื่องคอมพิวเตอร์ของคุณ (ในโฟลเดอร์โปรเจกต์) แล้วรัน:
+   ```bash
+   npm install
+   ```
+3. **Build โค้ด**:
+   รันคำสั่ง:
    ```bash
    npm run build
    ```
    *ระบบจะสร้างโฟลเดอร์ชื่อ `out` ขึ้นมา*
-
-2. **ติดตั้ง Firebase CLI**:
-   (หากยังไม่มี) รัน: `npm install -g firebase-tools` แล้วรัน `firebase login`
-
-3. **Deploy ไปที่ Firebase Hosting**:
+4. **Deploy**:
    รันคำสั่ง:
    ```bash
    firebase deploy --only hosting
    ```
 
-4. **เข้าใช้งาน**:
-   เมื่อสำเร็จ คุณจะได้ลิงก์ `https://your-project-id.web.app` มาใช้งานได้ทันที!
+### ทางเลือกที่ 2: เชื่อมต่อผ่าน GitHub (ต้องใช้แผน Blaze)
+1. **Push to GitHub**: นำโค้ดหน้านี้ส่งขึ้น GitHub Repository ของคุณ
+2. **Firebase App Hosting**: ไปที่ Firebase Console -> Build -> App Hosting แล้วเชื่อมต่อกับ Repository นั้น
+
+## 📊 การจัดการข้อมูล
+- ดูข้อมูลดิบ (สินค้า/ยอดขาย/พนักงาน) ได้ที่: [Firebase Console](https://console.firebase.google.com/) -> Build -> Firestore Database
 
 ## ⚠️ ข้อจำกัดของโหมดฟรี (Static)
 - **AI (Genkit) จะใช้งานไม่ได้**: เนื่องจากระบบ AI ต้องการเซิร์ฟเวอร์ประมวลผล
 - **ความเร็ว**: การโหลดหน้าเว็บอาจช้ากว่าแบบ App Hosting เล็กน้อย
 - **ฐานข้อมูล (Firestore/Auth)**: ใช้งานได้ตามปกติ 100%
-
-## 📊 การจัดการข้อมูล
-- ดูข้อมูลได้ที่: [Firebase Console](https://console.firebase.google.com/) -> Build -> Firestore Database
 
 ---
 *จัดทำขึ้นเพื่อการศึกษาและการเรียนรู้การ Deploy ระบบ*

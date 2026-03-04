@@ -14,7 +14,9 @@ import {
   AlertTriangle,
   Zap,
   Terminal,
-  Info
+  Info,
+  Download,
+  Github
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -28,49 +30,51 @@ export default function ManualPage() {
           <BookOpen className="w-6 h-6 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary">คู่มือสำหรับผู้เริ่มต้น (หัด Deploy)</h1>
-          <p className="text-muted-foreground">SaleFlow POS - ระบบจัดการร้านอาหารสัตว์</p>
+          <h1 className="text-3xl font-headline font-bold text-primary">คู่มือการนำระบบไปใช้งาน (Deployment Guide)</h1>
+          <p className="text-muted-foreground">SaleFlow POS - ทำความเข้าใจขั้นตอนการออนไลน์ระบบ</p>
         </div>
       </div>
+
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-5 w-5 text-blue-600" />
+        <AlertTitle className="text-blue-700 font-bold">ตอนนี้โค้ดอยู่ที่ไหน?</AlertTitle>
+        <AlertDescription className="text-blue-800">
+          ตอนนี้โค้ดของคุณทำงานอยู่บน <b>Cloud Editor (Firebase Studio)</b> ซึ่งเป็นพื้นที่ออนไลน์ หากคุณต้องการ Deploy (นำขึ้นระบบจริง) คุณต้องเลือกหนึ่งในสองวิธีด้านล่างนี้
+        </AlertDescription>
+      </Alert>
 
       {/* Deployment Choice */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-green-200 bg-green-50 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
-              <Zap className="w-5 h-5" />
-              ทางเลือกที่ 1: Deploy แบบฟรี (Spark)
+              <Github className="w-5 h-5" />
+              ทางเลือกที่ 1: ผ่าน GitHub (ง่ายที่สุด)
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-3">
-            <p>เหมาะสำหรับ: <b>นักศึกษา, ผู้ที่หัดเขียนโปรแกรม</b></p>
+            <p>เชื่อมต่อโค้ดจากหน้านี้เข้ากับ <b>GitHub</b> แล้วให้ Firebase จัดการให้</p>
             <ul className="list-disc list-inside space-y-1 text-green-800">
-              <li>ไม่ต้องผูกบัตรเครดิต</li>
-              <li>ใช้ Firebase Hosting แบบปกติ</li>
-              <li>ใช้งานฐานข้อมูลและระบบขายได้ปกติ</li>
-              <li className="text-red-600 font-bold">ฟีเจอร์ AI จะใช้งานไม่ได้</li>
+              <li>ไม่ต้องดาวน์โหลดโค้ดลงเครื่อง</li>
+              <li>ระบบจะอัปเดตให้อัตโนมัติเมื่อมีการแก้โค้ด</li>
+              <li className="font-bold">ต้องใช้แผน Blaze (จ่ายตามจริง)</li>
             </ul>
-            <div className="bg-white p-3 rounded border border-green-100 font-mono text-[10px] mt-2">
-              npm run build<br/>
-              firebase deploy --only hosting
-            </div>
           </CardContent>
         </Card>
 
         <Card className="border-blue-200 bg-blue-50 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-700">
-              <Globe className="w-5 h-5" />
-              ทางเลือกที่ 2: ใช้งานจริง (Blaze)
+              <Download className="w-5 h-5" />
+              ทางเลือกที่ 2: ทำในเครื่อง (ฟรี 100%)
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-3">
-            <p>เหมาะสำหรับ: <b>ร้านค้าจริง, ระบบที่ต้องการ AI</b></p>
+            <p>ดาวน์โหลดโค้ดลงเครื่องคอมพิวเตอร์ แล้วหัดใช้ <b>Terminal</b></p>
             <ul className="list-disc list-inside space-y-1 text-blue-800">
-              <li>ต้องผูกบัตรเครดิต (มีโควต้าฟรี)</li>
-              <li>ใช้ Firebase App Hosting</li>
-              <li>รัน Next.js ได้สมบูรณ์ 100%</li>
-              <li>ใช้งานระบบ AI เขียนคำบรรยายสินค้าได้</li>
+              <li>ฟรี 100% ไม่ต้องผูกบัตร</li>
+              <li>เหมาะสำหรับการฝึกหัดคำสั่งคอมพิวเตอร์</li>
+              <li>ใช้ Firebase Hosting (แผน Spark)</li>
             </ul>
           </CardContent>
         </Card>
@@ -81,26 +85,57 @@ export default function ManualPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Terminal className="w-5 h-5" />
-            วิธี Deploy แบบฟรี (Step-by-Step)
+            วิธี Deploy แบบฟรี (ทำในเครื่องคอมพิวเตอร์ของคุณ)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
-              <p>เปิด Terminal ในเครื่องของคุณ แล้วพิมพ์ <code className="bg-muted px-1 rounded">npm run build</code> เพื่อสร้างไฟล์สำหรับนำไปแสดงผล</p>
+              <p><b>ดาวน์โหลดโค้ด</b> จากหน้าเว็บ Firebase Studio นี้ลงไปที่คอมพิวเตอร์ของคุณก่อน</p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
-              <p>ตรวจสอบว่าโฟลเดอร์ชื่อ <code className="bg-muted px-1 rounded">out</code> ปรากฏขึ้นมาในโปรเจกต์</p>
+              <p>เปิดโปรแกรม <b>Terminal</b> หรือ <b>Command Prompt</b> ในคอมพิวเตอร์ของคุณ แล้วเข้าไปที่โฟลเดอร์โปรเจกต์</p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
-              <p>พิมพ์คำสั่ง <code className="bg-muted px-1 rounded">firebase deploy --only hosting</code></p>
+              <p>พิมพ์ <code className="bg-muted px-1 rounded">npm install</code> เพื่อติดตั้งโปรแกรมที่จำเป็นลงในเครื่อง</p>
             </div>
             <div className="flex items-start gap-3">
               <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0">4</span>
-              <p>ระบบจะให้ลิงก์ที่ลงท้ายด้วย <code className="text-blue-600">.web.app</code> มา คลิกเปิดใช้งานได้เลย!</p>
+              <p>พิมพ์ <code className="bg-muted px-1 rounded">npm run build</code> เพื่อสร้างไฟล์สำหรับแสดงผล (จะได้โฟลเดอร์ <code className="bg-muted px-1 rounded">out</code>)</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0">5</span>
+              <p>พิมพ์ <code className="bg-muted px-1 rounded">firebase deploy --only hosting</code> เพื่อนำขึ้นออนไลน์</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Data Management Section */}
+      <Card id="data-management">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            การจัดการข้อมูล (Data Management)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm">คุณสามารถดูและจัดการข้อมูลสินค้า ยอดขาย และพนักงาน ได้โดยตรงผ่านระบบหลังบ้านของ Firebase:</p>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
+              <p>เข้าสู่เว็บไซต์ <a href="https://console.firebase.google.com/" target="_blank" className="text-blue-600 underline">Firebase Console</a></p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
+              <p>เมนู <b>Build (สร้าง) &gt; Firestore Database</b></p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
+              <p>เลือกแท็บ <b>Data</b> เพื่อดูตารางข้อมูลทั้งหมดที่เกิดขึ้นจริงในแอป</p>
             </div>
           </div>
         </CardContent>
@@ -110,7 +145,7 @@ export default function ManualPage() {
         <AlertTriangle className="h-5 w-5" />
         <AlertTitle>ข้อควรระวัง</AlertTitle>
         <AlertDescription>
-          หากคุณ Deploy แบบฟรี ลิงก์เดิมที่เป็น <code className="bg-red-100 px-1 rounded">.web.app</code> จะใช้งานได้แล้ว แต่คุณจะพบว่าฟีเจอร์ AI ในหน้าคลังสินค้าจะไม่ทำงาน ซึ่งเป็นเรื่องปกติของโหมดฟรีครับ
+          หากคุณ Deploy แบบฟรี (Static) ฟีเจอร์ AI ในหน้าคลังสินค้าจะไม่ทำงาน และลิงก์ที่ใช้ได้คือลิงก์เดิมที่ลงท้ายด้วย <code className="bg-red-100 px-1 rounded">.web.app</code> ครับ
         </AlertDescription>
       </Alert>
     </div>
