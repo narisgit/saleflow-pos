@@ -14,7 +14,9 @@ import {
   Smartphone,
   PlusSquare,
   UserPlus,
-  ShieldCheck
+  ShieldCheck,
+  Camera,
+  Settings
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -34,6 +36,33 @@ export default function ManualPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-none shadow-sm bg-orange-50/50 border-orange-200 border">
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Camera className="w-5 h-5 text-orange-600" />
+            <CardTitle className="text-lg">วิธีเปิดกล้องเพื่อสแกน (สำคัญ!)</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-4">
+            <div className="space-y-2">
+              <p className="font-bold text-orange-700">สำหรับ iPhone (Safari):</p>
+              <ol className="list-decimal list-inside text-muted-foreground space-y-1">
+                <li>ไปที่ <b>Settings (การตั้งค่า)</b> ของมือถือ</li>
+                <li>เลือกเมนู <b>Safari</b></li>
+                <li>เลื่อนลงล่างสุด เลือก <b>Camera (กล้อง)</b></li>
+                <li>เลือกเป็น <b>Allow (อนุญาต)</b></li>
+              </ol>
+            </div>
+            <div className="space-y-2">
+              <p className="font-bold text-orange-700">สำหรับ Android (Chrome):</p>
+              <ol className="list-decimal list-inside text-muted-foreground space-y-1">
+                <li>กด <b>จุด 3 จุด</b> ที่มุมขวาบนของเบราว์เซอร์</li>
+                <li>เลือก <b>Settings (การตั้งค่า)</b> > <b>Site settings</b></li>
+                <li>เลือก <b>Camera</b> และอนุญาตให้ใช้งาน</li>
+              </ol>
+            </div>
+            <p className="text-xs text-orange-600 italic">* หากยังไม่ได้ ให้ลอง "ล้างคุกกี้" หรือเข้า "โหมดไม่ระบุตัวตน"</p>
+          </CardContent>
+        </Card>
+
         <Card className="border-none shadow-sm bg-accent/5">
           <CardHeader className="flex flex-row items-center gap-2">
             <Smartphone className="w-5 h-5 text-accent" />
@@ -65,28 +94,8 @@ export default function ManualPage() {
 
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">1. จัดการตำแหน่ง (สำหรับ Admin)</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            <p>เมื่อพนักงานสมัครสมาชิกแล้ว Admin สามารถไปที่เมนู <b>"จัดการพนักงาน"</b> เพื่อเปลี่ยนตำแหน่งเป็น Manager (ดูรายงานได้) หรือ Admin (แก้สต็อกได้)</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Package className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">2. จัดการสต็อกสินค้า</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            <p>เพิ่มสินค้าที่เมนู <b>"คลังสินค้า"</b> สามารถใช้กล้องมือถือสแกนบาร์โค้ดจากซองสินค้าได้ทันที ระบบจะช่วยเตือนเมื่อสินค้าใกล้หมด</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">3. การขายสินค้า (POS)</CardTitle>
+            <CardTitle className="text-lg">การขายสินค้า (POS)</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
             <p>ที่หน้า <b>"จุดขาย"</b> ให้เลือกสินค้าหรือสแกนบาร์โค้ด ตรวจสอบยอดเงิน และกดชำระเงิน ระบบจะตัดสต็อกและบันทึกยอดขายให้อัตโนมัติ</p>

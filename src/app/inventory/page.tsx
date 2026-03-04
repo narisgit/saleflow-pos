@@ -60,7 +60,6 @@ export default function InventoryPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  // เช็คสิทธิ์ผู้ใช้งาน
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
   const { data: currentUserProfile } = useDoc(currentUserRef)
   const canManageInventory = currentUserProfile?.role === 'Admin' || currentUserProfile?.role === 'Manager'
@@ -102,7 +101,7 @@ export default function InventoryPage() {
 
   const handleSave = () => {
     if (!formData.name || formData.price === undefined || !formData.barcode) {
-      toast({ title: "ข้อผิดพลาด", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (ชื่อ, ราคา, บาร์โค้ด)", variant: "destructive" })
+      toast({ title: "ข้อผิดพลาด", description: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", variant: "destructive" })
       return
     }
 
@@ -163,8 +162,8 @@ export default function InventoryPage() {
           setHasCameraPermission(false);
           toast({
             variant: 'destructive',
-            title: 'เข้าถึงกล้องไม่ได้',
-            description: 'กรุณาอนุญาตให้ใช้งานกล้องในตั้งค่าเบราว์เซอร์',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings.',
           });
         }
       };
@@ -214,7 +213,6 @@ export default function InventoryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
                 <div className="space-y-4">
                   <Label className="text-base font-bold">รูปบรรจุภัณฑ์สินค้า</Label>
-                  
                   <div className="relative aspect-square rounded-xl bg-muted border-2 border-dashed border-muted-foreground/20 overflow-hidden flex items-center justify-center group shadow-inner">
                     {formData.imageUrl ? (
                       <>
@@ -242,98 +240,49 @@ export default function InventoryPage() {
                       </div>
                     )}
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="imageUrl" className="text-xs text-muted-foreground">หรือใส่ URL รูปภาพสินค้า</Label>
-                    <Input 
-                      id="imageUrl" 
-                      placeholder="https://example.com/image.jpg"
-                      value={formData.imageUrl}
-                      onChange={e => setFormData(f => ({ ...f, imageUrl: e.target.value }))}
-                      className="text-xs"
-                    />
+                    <Input id="imageUrl" placeholder="https://example.com/image.jpg" value={formData.imageUrl} onChange={e => setFormData(f => ({ ...f, imageUrl: e.target.value }))} className="text-xs" />
                   </div>
                 </div>
-
                 <div className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">{t.productName}</Label>
-                      <Input 
-                        id="name" 
-                        placeholder="เช่น อาหารแมวเกรดพรีเมียม"
-                        value={formData.name} 
-                        onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
-                      />
+                      <Input id="name" placeholder="เช่น อาหารแมวเกรดพรีเมียม" value={formData.name} onChange={e => setFormData(f => ({ ...f, name: e.target.value }))} />
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="price">{t.price} (฿)</Label>
-                        <Input 
-                          id="price" 
-                          type="number" 
-                          value={formData.price} 
-                          onChange={e => setFormData(f => ({ ...f, price: Number(e.target.value) }))}
-                        />
+                        <Input id="price" type="number" value={formData.price} onChange={e => setFormData(f => ({ ...f, price: Number(e.target.value) }))} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="stock">{t.stock}</Label>
-                        <Input 
-                          id="stock" 
-                          type="number" 
-                          value={formData.stock} 
-                          onChange={e => setFormData(f => ({ ...f, stock: Number(e.target.value) }))}
-                        />
+                        <Input id="stock" type="number" value={formData.stock} onChange={e => setFormData(f => ({ ...f, stock: Number(e.target.value) }))} />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="category">{t.category}</Label>
-                      <Input 
-                        id="category" 
-                        placeholder="เช่น อาหารแมว, ขนมสุนัข"
-                        value={formData.category} 
-                        onChange={e => setFormData(f => ({ ...f, category: e.target.value }))}
-                      />
+                      <Input id="category" placeholder="เช่น อาหารแมว, ขนมสุนัข" value={formData.category} onChange={e => setFormData(f => ({ ...f, category: e.target.value }))} />
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="barcode">{t.barcode}</Label>
                       <div className="flex gap-2">
-                        <Input 
-                          id="barcode" 
-                          value={formData.barcode} 
-                          onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))}
-                          className="flex-1 font-mono"
-                        />
-                        <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากซองสินค้า">
-                          <Camera className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={generateBarcode} title="สุ่มบาร์โค้ด">
-                          <Barcode className="w-4 h-4" />
-                        </Button>
+                        <Input id="barcode" value={formData.barcode} onChange={e => setFormData(f => ({ ...f, barcode: e.target.value }))} className="flex-1 font-mono" />
+                        <Button variant="outline" size="icon" onClick={() => setIsScannerOpen(true)} title="สแกนจากซองสินค้า"><Camera className="w-4 h-4" /></Button>
+                        <Button variant="outline" size="icon" onClick={generateBarcode} title="สุ่มบาร์โค้ด"><Barcode className="w-4 h-4" /></Button>
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="description">{t.description}</Label>
-                      <Textarea 
-                        id="description" 
-                        className="h-24 text-sm leading-relaxed"
-                        placeholder="ข้อมูลเพิ่มเติมเกี่ยวกับสินค้า..."
-                        value={formData.description}
-                        onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
-                      />
+                      <Textarea id="description" className="h-24 text-sm leading-relaxed" placeholder="ข้อมูลเพิ่มเติมเกี่ยวกับสินค้า..." value={formData.description} onChange={e => setFormData(f => ({ ...f, description: e.target.value }))} />
                     </div>
                   </div>
                 </div>
               </div>
               <DialogFooter className="mt-4 gap-2">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
-                <Button onClick={handleSave} className="min-w-[120px]">
-                  {editingProduct ? "บันทึกการแก้ไข" : "เพิ่มสินค้าใหม่"}
-                </Button>
+                <Button onClick={handleSave} className="min-w-[120px]">{editingProduct ? "บันทึกการแก้ไข" : "เพิ่มสินค้าใหม่"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -342,18 +291,13 @@ export default function InventoryPage() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input 
-          placeholder="ค้นหาตามชื่อสินค้า, หมวดหมู่ หรือบาร์โค้ด..." 
-          className="pl-10 h-12 shadow-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <Input placeholder="ค้นหาตามชื่อสินค้า, หมวดหมู่ หรือบาร์โค้ด..." className="pl-10 h-12 shadow-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       {!canManageInventory && (
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 text-blue-800 text-sm">
           <Lock className="w-5 h-5" />
-          <span>คุณอยู่ในฐานะ {currentUserProfile?.role || 'พนักงาน'} คุณสามารถดูคลังสินค้าได้เท่านั้น แต่ไม่สามารถเพิ่ม แก้ไข หรือลบสินค้าได้</span>
+          <span>คุณอยู่ในฐานะ {currentUserProfile?.role || 'พนักงาน'} คุณสามารถดูคลังสินค้าได้เท่านั้น</span>
         </div>
       )}
 
@@ -367,16 +311,13 @@ export default function InventoryPage() {
               <TableHead>{t.category}</TableHead>
               <TableHead>{t.price} (฿)</TableHead>
               <TableHead>{t.stock}</TableHead>
-              <TableHead>ผู้เพิ่มสินค้า</TableHead>
               <TableHead className="text-right">{t.actions}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground italic">
-                  ไม่พบสินค้าในระบบ
-                </TableCell>
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground italic">ไม่พบสินค้าในระบบ</TableCell>
               </TableRow>
             ) : (
               filteredProducts.map((product) => (
@@ -386,48 +327,19 @@ export default function InventoryPage() {
                       {product.imageUrl && <Image src={product.imageUrl} alt="" fill className="object-cover" />}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="font-medium text-sm">{product.name}</div>
-                  </TableCell>
+                  <TableCell><div className="font-medium text-sm">{product.name}</div></TableCell>
                   <TableCell className="font-mono text-xs">{product.barcode}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{product.category}</Badge>
-                  </TableCell>
+                  <TableCell><Badge variant="secondary">{product.category}</Badge></TableCell>
                   <TableCell className="font-bold text-primary">{product.price.toLocaleString()} ฿</TableCell>
-                  <TableCell>
-                    <span className={`font-medium ${product.stock < 10 ? 'text-destructive' : ''}`}>
-                      {product.stock}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <UserIcon className="w-3 h-3" />
-                      {product.createdByUserName || '-'}
-                    </div>
-                  </TableCell>
+                  <TableCell><span className={`font-medium ${product.stock < 10 ? 'text-destructive' : ''}`}>{product.stock}</span></TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      {canManageInventory && (
+                      {canManageInventory ? (
                         <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 hover:text-primary" 
-                            onClick={() => handleOpenDialog(product)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10" 
-                            onClick={() => deleteProduct(product.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleOpenDialog(product)}><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteProduct(product.id)}><Trash2 className="w-4 h-4" /></Button>
                         </>
-                      )}
-                      {!canManageInventory && <Lock className="w-4 h-4 text-muted-foreground mr-3" />}
+                      ) : <Lock className="w-4 h-4 text-muted-foreground mr-3" />}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -436,6 +348,28 @@ export default function InventoryPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader><DialogTitle>สแกนบาร์โค้ดสินค้า</DialogTitle></DialogHeader>
+          <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex items-center justify-center">
+            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
+            <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
+            {!hasCameraPermission && hasCameraPermission !== null && (
+              <div className="absolute inset-0 bg-background/90 flex items-center justify-center p-6 text-center">
+                <Alert variant="destructive">
+                  <AlertTitle>เข้าถึงกล้องไม่ได้</AlertTitle>
+                  <AlertDescription>กรุณาอนุญาตการเข้าถึงกล้องในหน้าการตั้งค่าเบราว์เซอร์</AlertDescription>
+                </Alert>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="secondary" onClick={() => setIsScannerOpen(false)}>{t.cancel}</Button>
+            <Button onClick={simulateScan}>จำลองการสแกน</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
