@@ -19,6 +19,7 @@ export interface CartItem extends Product {
 
 export interface Staff {
   id: string;
+  employeeCode: string;
   name: string;
   role: 'Admin' | 'Manager' | 'Cashier';
   active: boolean;

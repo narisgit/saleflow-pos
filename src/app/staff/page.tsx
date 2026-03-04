@@ -18,7 +18,8 @@ import {
   Lock,
   Key,
   Info,
-  UserPlus
+  UserPlus,
+  Hash
 } from 'lucide-react'
 import { 
   Table, 
@@ -77,6 +78,7 @@ export default function StaffPage() {
 
   const [formData, setFormData] = useState<Partial<Staff>>({
     id: '',
+    employeeCode: '',
     name: '',
     role: 'Cashier',
     active: true,
@@ -84,13 +86,15 @@ export default function StaffPage() {
   })
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', role: 'Cashier', active: true, email: '' })
+    setFormData({ id: '', employeeCode: '', name: '', role: 'Cashier', active: true, email: '' })
     setEditingStaff(null)
   }
 
   const handleOpenDialog = (staff: Staff) => {
     setEditingStaff(staff)
-    setFormData(staff)
+    // หากพนักงานยังไม่มีรหัส ให้สร้างรหัสเริ่มต้นให้
+    const code = staff.employeeCode || `EMP-${staff.id.slice(-3).toUpperCase()}`
+    setFormData({ ...staff, employeeCode: code })
     setIsDialogOpen(true)
   }
 
@@ -100,8 +104,12 @@ export default function StaffPage() {
       return
     }
 
+    // กำหนดรหัสพนักงานเริ่มต้นหากไม่ได้ใส่มา
+    const finalCode = formData.employeeCode || `EMP-${formData.id.slice(-3).toUpperCase()}`
+
     const staffData: Staff = {
       id: formData.id,
+      employeeCode: finalCode,
       name: formData.name!,
       role: (formData.role as any) || 'Cashier',
       active: true,
@@ -121,6 +129,7 @@ export default function StaffPage() {
     if (!user) return;
     const adminData: Staff = {
       id: user.uid,
+      employeeCode: 'EMP-001',
       name: user.displayName || user.email?.split('@')[0] || 'System Admin',
       role: 'Admin',
       active: true,
@@ -160,12 +169,9 @@ export default function StaffPage() {
 
       <Alert className="bg-blue-50 border-blue-200">
         <Info className="h-4 w-4 text-blue-600" />
-        <AlertTitle className="text-blue-700">คำแนะนำการเพิ่มพนักงาน</AlertTitle>
+        <AlertTitle className="text-blue-700">คำแนะนำการตั้งรหัสพนักงาน</AlertTitle>
         <AlertDescription className="text-blue-600">
-          เพื่อให้พนักงานมีรหัสผ่านของตนเอง: 
-          1. ให้พนักงานไปที่หน้า <b>Login</b> แล้วเลือก <b>Register</b> เพื่อสมัครสมาชิก 
-          2. เมื่อพนักงานสมัครเสร็จ รายชื่อจะปรากฏในตารางด้านล่าง 
-          3. คุณ (Admin) สามารถกดปุ่มแก้ไขเพื่อเปลี่ยนตำแหน่ง (Role) ให้เขาได้ครับ
+          คุณสามารถตั้งรหัสพนักงานได้ในรูปแบบ <b>EMP-001</b> เพื่อให้เรียกขานและจดจำได้ง่ายขึ้นในหน้าใบเสร็จและประวัติการขายครับ
         </AlertDescription>
       </Alert>
 
@@ -180,6 +186,7 @@ export default function StaffPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
+              <TableHead className="w-[150px]">{t.employeeCode}</TableHead>
               <TableHead>{t.staffName}</TableHead>
               <TableHead>{t.role}</TableHead>
               <TableHead>{t.active}</TableHead>
@@ -189,13 +196,18 @@ export default function StaffPage() {
           <TableBody>
             {staffList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-12 text-muted-foreground italic">
+                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic">
                   ยังไม่มีพนักงานสมัครสมาชิกเข้ามาในระบบ
                 </TableCell>
               </TableRow>
             ) : (
               staffList.map((staff) => (
                 <TableRow key={staff.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell>
+                    <Badge variant="outline" className="font-mono text-primary border-primary/30">
+                      {staff.employeeCode || `EMP-${staff.id.slice(-3).toUpperCase()}`}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -262,6 +274,19 @@ export default function StaffPage() {
             <DialogTitle>แก้ไขข้อมูลพนักงาน</DialogTitle>
           </DialogHeader>
           <div className="grid gap-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="employeeCode">{t.employeeCode}</Label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  id="employeeCode" 
+                  placeholder="เช่น EMP-001"
+                  className="pl-10 font-mono"
+                  value={formData.employeeCode} 
+                  onChange={e => setFormData(f => ({ ...f, employeeCode: e.target.value }))}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">{t.staffName}</Label>
               <Input 

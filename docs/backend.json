@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -8,7 +9,11 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
+          "description": "Unique identifier for the UserProfile entity (Firebase UID)."
+        },
+        "employeeCode": {
+          "type": "string",
+          "description": "A human-readable staff ID in the format EMP-000."
         },
         "name": {
           "type": "string",

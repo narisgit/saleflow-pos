@@ -1,3 +1,4 @@
+
 export const translations = {
   en: {
     dashboard: "Dashboard",
@@ -20,6 +21,7 @@ export const translations = {
     name: "Name",
     productName: "Product Name",
     staffName: "Staff Name",
+    employeeCode: "Staff ID",
     price: "Price",
     stock: "Stock",
     barcode: "Barcode",
@@ -73,6 +75,7 @@ export const translations = {
     name: "ชื่อ",
     productName: "ชื่อสินค้า",
     staffName: "ชื่อพนักงาน",
+    employeeCode: "รหัสพนักงาน",
     price: "ราคา",
     stock: "คงคลัง",
     barcode: "บาร์โค้ด",
