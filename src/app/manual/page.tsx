@@ -21,7 +21,8 @@ import {
   Globe,
   Link as LinkIcon,
   AlertTriangle,
-  FileX
+  FileX,
+  CreditCard
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -81,6 +82,15 @@ export default function ManualPage() {
         </div>
       </div>
 
+      {/* Critical Warning about Blaze Plan */}
+      <Alert variant="destructive" className="bg-amber-50 border-amber-200">
+        <CreditCard className="h-5 w-5 text-amber-600" />
+        <AlertTitle className="text-amber-800 font-bold">ข้อมูลสำคัญ: ต้องใช้แผน Blaze (Pay-as-you-go)</AlertTitle>
+        <AlertDescription className="text-amber-700">
+          เนื่องจากระบบ App Hosting ต้องใช้ทรัพยากรเซิร์ฟเวอร์ในการรัน Next.js คุณจำเป็นต้องกด <b>"Upgrade project"</b> ใน Firebase Console เพื่อเปลี่ยนจากแผน Spark (ฟรี) เป็น <b>Blaze</b> ก่อน ถึงจะเริ่มสร้าง Backend และใช้งานระบบนี้ได้ครับ (ไม่ต้องกังวล หากใช้งานไม่เยอะมักจะอยู่ในโควต้าฟรีของ Google Cloud ครับ)
+        </AlertDescription>
+      </Alert>
+
       {/* Critical Warning about index.html */}
       <Alert variant="destructive" className="bg-red-50 border-red-200">
         <AlertTriangle className="h-5 w-5" />
@@ -102,25 +112,31 @@ export default function ManualPage() {
           <div className="bg-white p-4 rounded-lg border border-green-100 space-y-4">
             <h4 className="font-bold text-base flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              ทำไมถึงเข้าลิงก์ .web.app เดิมไม่ได้?
+              ขั้นตอนการเริ่มต้นใช้งานครั้งแรก:
             </h4>
-            <p className="text-sm">ลิงก์เดิมที่เป็นระบบ Hosting (Static) จะมองหาไฟล์ index.html ซึ่งแอปเราไม่ได้ใช้ครับ คุณต้องใช้ลิงก์จากระบบใหม่ที่ชื่อว่า <b>App Hosting</b> เท่านั้น</p>
             
-            <div className="space-y-2 pt-2 border-t">
-              <p className="font-bold">ขั้นตอนการหา URL ที่ถูกต้อง:</p>
-              <ol className="list-decimal pl-5 space-y-3">
-                <li>ไปที่ <b><a href="https://console.firebase.google.com/" target="_blank" className="underline font-bold">Firebase Console</a></b></li>
-                <li>เมนูซ้ายมือ เลือก <b>Build (สร้าง) &gt; App Hosting</b></li>
-                <li>คลิกที่ชื่อโปรเจกต์ของคุณ (Backend)</li>
-                <li>มองหาหัวข้อ <b>"Domains"</b> หรือ <b>"URL"</b> คุณจะพบลิงก์ใหม่ที่ Firebase สร้างให้ (มักจะยาวกว่าลิงก์เดิม)</li>
-                <li><b>คัดลอกลิงก์นั้น</b> ไปให้พนักงานใช้งานได้ทันทีครับ!</li>
-              </ol>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-3">
+                <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">1</span>
+                <p>กด <b>"Upgrade project"</b> ในหน้า App Hosting เพื่อเปลี่ยนเป็นแผน <b>Blaze</b></p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">2</span>
+                <p>กดปุ่ม <b>"Get started"</b> เพื่อเริ่มสร้าง Backend ชุดแรกของคุณ</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">3</span>
+                <p>เชื่อมต่อกับ <b>GitHub Repository</b> ที่คุณนำโค้ดขึ้นไปเก็บไว้</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-green-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0">4</span>
+                <p>เมื่อ Deploy สำเร็จ ระบบจะแสดง <b>URL</b> ใหม่มาให้ (เช่น https://saleflow-pos-xxx.a.run.app)</p>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Rest of the manual... */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {roles.map((role, i) => (
           <Card key={i} className="border-none shadow-md overflow-hidden">
