@@ -20,7 +20,8 @@ import {
   Loader2,
   Lock,
   CheckCircle2,
-  Upload
+  Upload,
+  Zap
 } from 'lucide-react'
 import { 
   Table, 
@@ -56,10 +57,15 @@ export default function InventoryPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   
-  const [isScannerOpen, setIsScannerOpen] = useState(false)
+  // States for live camera capture
+  const [isCaptureMode, setIsCaptureMode] = useState(false)
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const captureVideoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Scanner states (for barcode)
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
+  const scannerVideoRef = useRef<HTMLVideoElement>(null)
 
   const currentUserRef = useMemoFirebase(() => user ? doc(db, 'userProfiles', user.uid) : null, [db, user])
   const { data: currentUserProfile } = useDoc(currentUserRef)
@@ -84,6 +90,7 @@ export default function InventoryPage() {
   const resetForm = () => {
     setFormData({ name: '', price: 0, stock: 0, barcode: '', category: '', description: '', imageUrl: '' })
     setEditingProduct(null)
+    stopCapture()
   }
 
   const handleOpenDialog = (product?: Product) => {
@@ -154,12 +161,57 @@ export default function InventoryPage() {
     resetForm()
   }
 
-  const requestCamera = async () => {
+  const startCapture = async () => {
+    setIsCaptureMode(true)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      setHasCameraPermission(true)
+      if (captureVideoRef.current) {
+        captureVideoRef.current.srcObject = stream
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error)
+      setHasCameraPermission(false)
+      setIsCaptureMode(false)
+      toast({
+        variant: 'destructive',
+        title: 'ไม่ได้รับอนุญาต',
+        description: 'กรุณาอนุญาตการเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์',
+      })
+    }
+  }
+
+  const stopCapture = () => {
+    if (captureVideoRef.current && captureVideoRef.current.srcObject) {
+      const tracks = (captureVideoRef.current.srcObject as MediaStream).getTracks()
+      tracks.forEach(track => track.stop())
+    }
+    setIsCaptureMode(false)
+  }
+
+  const takePhoto = () => {
+    if (captureVideoRef.current) {
+      const canvas = document.createElement('canvas')
+      canvas.width = captureVideoRef.current.videoWidth
+      canvas.height = captureVideoRef.current.videoHeight
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(captureVideoRef.current, 0, 0)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+        setFormData(f => ({ ...f, imageUrl: dataUrl }))
+        stopCapture()
+        toast({ title: "บันทึกรูปสำเร็จ" })
+      }
+    }
+  }
+
+  // Barcode Scanner logic
+  const requestScannerCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setHasCameraPermission(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      if (scannerVideoRef.current) {
+        scannerVideoRef.current.srcObject = stream;
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -174,8 +226,8 @@ export default function InventoryPage() {
 
   useEffect(() => {
     if (!isScannerOpen) {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      if (scannerVideoRef.current && scannerVideoRef.current.srcObject) {
+        const tracks = (scannerVideoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach(track => track.stop());
       }
     }
@@ -204,7 +256,7 @@ export default function InventoryPage() {
           <p className="text-muted-foreground">จัดการคลังสินค้าอาหารสัตว์และอุปกรณ์</p>
         </div>
         {canManageInventory && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => { if(!open) resetForm(); setIsDialogOpen(open); }}>
             <DialogTrigger asChild>
               <Button onClick={() => handleOpenDialog()} className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-md">
                 <Plus className="w-4 h-4 mr-2" />
@@ -219,13 +271,29 @@ export default function InventoryPage() {
                 <div className="space-y-4">
                   <Label className="text-base font-bold">รูปบรรจุภัณฑ์สินค้า</Label>
                   <div className="relative aspect-square rounded-xl bg-muted border-2 border-dashed border-muted-foreground/20 overflow-hidden flex items-center justify-center group shadow-inner">
-                    {formData.imageUrl ? (
+                    {isCaptureMode ? (
+                      <div className="absolute inset-0 bg-black flex flex-col items-center">
+                        <video ref={captureVideoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                        <div className="absolute bottom-4 flex gap-2">
+                          <Button size="sm" onClick={takePhoto} className="rounded-full h-12 w-12 p-0 bg-white hover:bg-white/90 text-primary">
+                            <CheckCircle2 className="w-8 h-8" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={stopCapture} className="rounded-full h-12 w-12 p-0">
+                            <X className="w-6 h-6" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : formData.imageUrl ? (
                       <>
                         <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                           <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
                             <Upload className="w-4 h-4" />
-                            เปลี่ยนรูป
+                            เลือกไฟล์
+                          </Button>
+                          <Button variant="secondary" size="sm" onClick={startCapture} className="gap-2">
+                            <Camera className="w-4 h-4" />
+                            ถ่ายใหม่
                           </Button>
                           <Button variant="destructive" size="icon" onClick={() => setFormData(f => ({ ...f, imageUrl: '' }))}>
                             <X className="w-4 h-4" />
@@ -238,13 +306,18 @@ export default function InventoryPage() {
                           <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
                         </div>
                         <p className="text-xs text-muted-foreground">ถ่ายรูป หรือเลือกจากคลังภาพ</p>
-                        <Button variant="default" size="sm" onClick={() => fileInputRef.current?.click()} className="mt-2 gap-2">
-                          <Camera className="w-4 h-4" />
-                          ถ่ายรูป / เลือกรูป
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button variant="default" size="sm" onClick={startCapture} className="gap-2">
+                            <Camera className="w-4 h-4" />
+                            ถ่ายรูปด้วยกล้อง
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
+                            <Upload className="w-4 h-4" />
+                            เลือกจากเครื่อง
+                          </Button>
+                        </div>
                       </div>
                     )}
-                    {/* Hidden input moved inside the same container for better trigger reliability */}
                     <input 
                       type="file" 
                       ref={fileInputRef} 
@@ -370,7 +443,7 @@ export default function InventoryPage() {
           <div className="relative aspect-square bg-black rounded-lg overflow-hidden flex flex-col items-center justify-center">
             {hasCameraPermission ? (
               <>
-                <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
+                <video ref={scannerVideoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted playsInline />
                 <div className="absolute inset-0 border-2 border-dashed border-primary/50 m-12 rounded-xl pointer-events-none" />
               </>
             ) : (
@@ -380,7 +453,7 @@ export default function InventoryPage() {
                 </div>
                 <h3 className="text-white font-bold">ต้องการการเข้าถึงกล้อง</h3>
                 <p className="text-white/60 text-sm">เพื่อใช้ฟีเจอร์สแกนบาร์โค้ด กรุณากดปุ่มอนุญาตด้านล่าง</p>
-                <Button onClick={requestCamera} className="w-full bg-primary hover:bg-primary/90">
+                <Button onClick={requestScannerCamera} className="w-full bg-primary hover:bg-primary/90">
                   <CheckCircle2 className="w-4 h-4 mr-2" />
                   อนุญาตใช้งานกล้อง
                 </Button>
