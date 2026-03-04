@@ -3,7 +3,20 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/lib/store"
-import { ShieldCheck, Briefcase, UserCheck, BookOpen, Info, Package, ShoppingCart, History, CheckCircle2 } from "lucide-react"
+import { 
+  ShieldCheck, 
+  Briefcase, 
+  UserCheck, 
+  BookOpen, 
+  Info, 
+  Package, 
+  ShoppingCart, 
+  History, 
+  CheckCircle2,
+  Smartphone,
+  QrCode,
+  Download
+} from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function ManualPage() {
@@ -55,6 +68,24 @@ export default function ManualPage() {
     { title: "3. ตรวจสอบ Dashboard", description: "กลับไปหน้า 'แผงควบคุม' ยอดขายจะถูกรวมเข้ากับกราฟแท่งรายเดือนของเดือนปัจจุบันทันที", icon: CheckCircle2 }
   ]
 
+  const mobileTips = [
+    { 
+      title: "ใช้งานผ่านเบราว์เซอร์มือถือ", 
+      description: "เปิดเบราว์เซอร์ (Safari/Chrome) บนมือถือ แล้วเข้าสู่ URL ของระบบ SaleFlow", 
+      icon: Smartphone 
+    },
+    { 
+      title: "เพิ่มลงหน้าจอหลัก (PWA)", 
+      description: "กดปุ่ม Share (iOS) หรือเมนู (Android) แล้วเลือก 'Add to Home Screen' เพื่อใช้งานเหมือนแอป", 
+      icon: Download 
+    },
+    { 
+      title: "สแกนบาร์โค้ดด้วยกล้อง", 
+      description: "หน้า POS และ Inventory รองรับการใช้กล้องหลังมือถือสแกนบาร์โค้ดสินค้าได้ทันที", 
+      icon: QrCode 
+    }
+  ]
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
       <div className="flex items-center gap-3">
@@ -67,6 +98,7 @@ export default function ManualPage() {
         </div>
       </div>
 
+      {/* Role Management Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {roles.map((role, i) => (
           <Card key={i} className="border-none shadow-md overflow-hidden">
@@ -91,6 +123,30 @@ export default function ManualPage() {
         ))}
       </div>
 
+      {/* Mobile Testing Section */}
+      <Card className="border-none shadow-lg bg-accent/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-accent" />
+            การทดสอบผ่านมือถือ (Mobile Application)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {mobileTips.map((tip, i) => (
+              <div key={i} className="flex flex-col items-center text-center space-y-3">
+                <div className="bg-white p-3 rounded-full shadow-sm border text-accent">
+                  <tip.icon className="w-6 h-6" />
+                </div>
+                <h4 className="font-bold text-sm">{tip.title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">{tip.description}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* System Test Case Section */}
       <Card className="border-none shadow-lg bg-primary/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -113,6 +169,7 @@ export default function ManualPage() {
         </CardContent>
       </Card>
 
+      {/* General Features */}
       <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -128,7 +185,7 @@ export default function ManualPage() {
               </div>
               <div>
                 <h4 className="font-bold">หน้าจุดขาย (POS)</h4>
-                <p className="text-sm text-muted-foreground">ใช้สำหรับเลือกสินค้าลงตะกร้า พนักงานสามารถกดสแกนบาร์โค้ดเพื่อความรวดเร็ว เมื่อชำระเงินเสร็จระบบจะตัดสต็อกอัตโนมัติ</p>
+                <p className="text-sm text-muted-foreground">ใช้สำหรับเลือกสินค้าลงตะกร้า พนักงานสามารถกดสแกนบาร์โค้ดด้วยกล้องมือถือได้ เมื่อชำระเงินเสร็จระบบจะตัดสต็อกอัตโนมัติ</p>
               </div>
             </div>
             <div className="flex gap-4">
