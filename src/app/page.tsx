@@ -1,22 +1,29 @@
 
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useInventory, useOrders, useLanguage } from "@/lib/store"
-import { TrendingUp, Package, ShoppingCart, DollarSign } from "lucide-react"
+import { TrendingUp, Package, ShoppingCart, DollarSign, Loader2 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function DashboardPage() {
   const { products } = useInventory()
   const { orders } = useOrders()
   const { t } = useLanguage()
+  const [mounted, setMounted] = useState(false)
+
+  // ป้องกันปัญหา Hydration mismatch สำหรับกราฟและวันที่
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const totalSales = orders.reduce((acc, order) => acc + order.total, 0)
   const totalItemsSold = orders.reduce((acc, order) => acc + order.items.reduce((iAcc, item) => iAcc + item.quantity, 0), 0)
   const lowStockProducts = products.filter(p => p.stock < 10).length
 
   const chartData = orders.slice(0, 7).reverse().map(order => ({
-    name: new Date(order.date).toLocaleDateString([], { weekday: 'short' }),
+    name: new Date(order.date).toLocaleDateString('th-TH', { weekday: 'short' }),
     total: order.total
   }))
 
@@ -27,11 +34,19 @@ export default function DashboardPage() {
     { title: t.lowStockItems, value: lowStockProducts.toLocaleString(), icon: Package, color: "text-orange-600" },
   ]
 
+  if (!mounted) {
+    return (
+      <div className="h-full flex items-center justify-center p-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-headline font-bold text-primary">{t.dashboard}</h1>
-        <p className="text-muted-foreground">SaleFlow POS - {t.dashboard}</p>
+        <p className="text-muted-foreground">SaleFlow POS - ระบบจัดการร้านอาหารสัตว์</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -95,7 +110,7 @@ export default function DashboardPage() {
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground text-sm">
-                  Inventory levels are healthy!
+                  สต็อกสินค้าอยู่ในระดับปกติ
                 </div>
               )}
             </div>
